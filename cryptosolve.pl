@@ -1,6 +1,6 @@
 #!/usr/linguist/bin/perl -w
 
-# $Header: /usr/people/rjk/words/RCS/cryptosolve.pl,v 1.4 2001/11/08 15:17:48 rjk Exp rjk $
+# $Header: /home/r/rjk/words/RCS/cryptosolve.pl,v 1.5 2002/04/23 19:42:08 rjk Exp rjk $
 
 use strict;
 use Getopt::Std;
@@ -32,16 +32,37 @@ if ($force_upper) {
     $_ = uc $_ for @crypto;
 }
 
+
+# save original text for translation at the end
+
 my $crypto = "@crypto";
 
 print "$crypto\n";
+
+
+# remove obviously unimportant puncuation
+# keep only translatable words
+# (e.g. word list does not contain contractions)
 
 @crypto = grep { s/^"//; s/[,."]+$//; /^[a-zA-Z]+$/ } @crypto;
 
 print "@crypto\n";
 
+
+# create a regex for each base word that matches real words
+# with the same cryptographic pattern
+
 my @regex = map scalar(crypto_regex($_)), @crypto;
+
+
+# assume one-letter words will translate to 'a' or 'I'
+# (word list may not contain 'a' or 'i')
+
 my @words = map [ length == 1 ? ('a', 'i') : () ], @crypto;
+
+
+# build an array of arrays of all the matching real words
+# for each base word
 
 while (<DICT>) {
     chomp;
@@ -59,6 +80,10 @@ while (<DICT>) {
     }
 }
 
+
+
+# count the number of real words for each crypto word,
+# and make sure each base word has at least one real word
 
 my $total = 0;
 
@@ -81,16 +106,33 @@ if (@no_words) {
     die "No possible word matches for @no_words.\n";
 }
 
+
+
+# calculate the set of translations for each letter
+# eliminate conflicting translations
+# repeat until no more translations can be eliminated
+
 my $last_total = 0;
 
 my %trans;
 
 while ($total != $last_total) {
 
+    # get the set of translations for the letters in the first base word
+
     %trans = %{ make_trans($crypto[0], $words[0]) };
 
     for my $i (1 .. $#crypto) {
+
+        # get the set of translations for the letters in the next base word
+
         my $tmp = make_trans($crypto[$i], $words[$i]);
+
+        # for each base letter, eliminate translations from previous
+        # base words which aren't possible with the current base word
+        # e.g. if previous words yielded X => A,B
+        #      and the current word yields X => B,C
+        #      the result is X => B
 
         foreach my $base (keys %$tmp) {
             if (not $trans{$base}) {
@@ -104,6 +146,10 @@ while ($total != $last_total) {
         }
     }
 
+
+    # for each base letter which now has only one possible translation
+    # eliminate that translation from all other bases
+
     my %definite = ();
 
     foreach my $base (sort { keys %{$trans{$a}} <=> keys %{$trans{$b}} }
@@ -116,6 +162,10 @@ while ($total != $last_total) {
             redo if grep $_, @del;
         }
     }
+
+
+    # create a character classes for each base letter
+    # make sure each base letter has at least one translation
 
     my @no_trans;
 
@@ -134,9 +184,17 @@ while ($total != $last_total) {
         die "No possible translations for @no_trans.\n";
     }
 
+
+    # eliminate words which are no longer possible with the new set of
+    # translations
+
     for my $i (0 .. $#crypto) {
         eliminate_words($crypto[$i], $words[$i], \%classes);
     }
+
+
+    # count the new number of real words for each base word
+    # make sure each base word has at least one real word still
 
     $last_total = $total;
     $total = 0;
@@ -164,14 +222,24 @@ while ($total != $last_total) {
 
 }
 
-my @order = sort { @{$words[$a]} <=> @{$words[$b]} ||
-                   length $crypto[$b] <=> length $crypto[$a]
-                 } 0 .. $#words;
+
+# find the solution(s)!
 
 my @solutions;
 
-
 if (0) {
+
+    # old approach
+    # try translations one base word at a time
+    # redundant when several real words share a letter
+    # e.g. XYZ => cat, cow, dog tries X => C twice
+    #      even when X => C is incorrect
+
+    # try base words in ascending order by number of real words
+
+    my @order = sort { @{$words[$a]} <=> @{$words[$b]} ||
+                       length $crypto[$b] <=> length $crypto[$a]
+                     } 0 .. $#words;
 
     @solutions = try({}, \@order);
 
@@ -181,6 +249,9 @@ if (0) {
 
 } else {
 
+    # new approach
+    # try translations one base letter at a time
+
     @solutions = try2(\%trans);
 
     for my $trans (@solutions) {
@@ -189,9 +260,11 @@ if (0) {
 
 }
 
-
-
 exit;
+
+
+# try translations one base letter at a time
+# in ascending order by number of translations
 
 sub try2 {
     my($trans) = @_;
@@ -202,8 +275,16 @@ sub try2 {
     try2_recurse({}, {}, $trans, \@letters, 0);
 }
 
+
+# try all the translations for a base letter,
+# recursing through the remaining base letters
+
 sub try2_recurse {
     my($try, $rtry, $trans, $letters, $p) = @_;
+
+
+    # if this isn't the first base letter,
+    # make sure all base words still have at least one real word
 
     if ($p > 1) {
         foreach my $c (0 .. $#crypto) {
@@ -215,9 +296,16 @@ sub try2_recurse {
         }
     }
 
+
+    # no more base letters to translate; found a solution!
+
     if ($p > $#{$letters}) {
         return $try;
     }
+
+
+    # recursively try all the translations for the next base letter
+    # skip translations which have already been used in this try
 
     my $l = $letters->[$p];
 
@@ -233,14 +321,25 @@ sub try2_recurse {
     @return;
 }
 
+
+# try all the translations for a base word,
+# recursing through the remaining base words
+
 sub try {
     my($trans, $order) = @_;
+
+
+    # no more base words to translate; found a solution!
 
     if (not @$order) {
         return $trans;
     }
 
     my @return;
+
+
+    # for each real word which is still possible,
+    # recursively try all the translations for the next base word
 
     my $c = $order->[0];
     my $curr = translate($trans, $crypto[$c]);
@@ -263,6 +362,11 @@ sub try {
     @return;
 }
 
+
+# translate some or all of the base letters in a word
+# according to the specified translation
+# (base letters are in uppercase)
+
 sub translate {
     my($trans, $word) = @_;
 
@@ -272,6 +376,11 @@ sub translate {
     eval "\$word =~ tr/$from/$to/";
     $word;
 }
+
+
+# given a base word and a corresponding list of real words,
+# return a hash of the possible translations for each base letter
+# (no eliminations are performed here)
 
 sub make_trans {
     my($base, $words) = @_;
@@ -290,6 +399,12 @@ sub make_trans {
     return \%trans;
 }
 
+
+# given a base word, a corresponding list of real words, and a hash
+# of character classes, remove words which are no longer possible
+# uppercase letters in the base word use the character class;
+# lowercase letters are matched exactly
+
 sub eliminate_words {
     my($base, $words, $classes) = @_;
 
@@ -305,6 +420,10 @@ sub eliminate_words {
 
     $re = qr/$re/;
 
+
+    # partition the list into possible and impossible words
+    # to avoid many small splices
+
     my($p, $q);
 
     for ($p = $q = 0; $q < @$words; ++$q) {
@@ -319,6 +438,12 @@ sub eliminate_words {
 
     return;
 }
+
+
+# given a base word and a list of letters which have already been used
+# create a regex to match possible real words
+# uppercase letters are wildcards
+# lowercase letters are matched literally
 
 sub crypto_regex {
     my($word, $used) = @_;
@@ -369,7 +494,7 @@ B<cryptosolve> -- solve standard cryptograms
 
 =head1 SYNOPSIS
 
-B<cryptosolve> [B<-w> I<wordlist>] [B<-D>] [B<-E>]
+B<cryptosolve> [B<-w> I<wordlist>] [B<-D>] [B<-E>] [cryptogram]
 
 =head1 DESCRIPTION
 
@@ -387,6 +512,14 @@ By default, B<cryptosolve> looks for a file named 'wordlist' in the
 same directory as the executable.  Use the B<-w> option to specify the
 path to an alternate word list.
 
+=item B<-u>
+
+By default, B<cryptosolve> treats uppercase letters as base letters to
+be translated and lowercase letters as final letters.  This allows you
+to use it on a partially translated cryptogram.  Use the B<-u> option
+when you want to force all letters to uppercase; this saves you from
+having to modify the input.
+
 =item B<-D>
 
 Use the B<-D> option to turn on debugging output.
@@ -399,6 +532,9 @@ option to have only one round of elimination performed.  This may be
 useful for debugging purposes.
 
 =back
+
+The cryptogram may be passed on the command line or via standard
+input.
 
 =head1 FILES
 
@@ -425,7 +561,7 @@ I<rjk@linguist.dartmouth.edu>.
 
 =head1 COPYRIGHT and LICENSE
 
-This program is copyright 2001 by Ronald J Kimball.
+This program is copyright 2001, 2002 by Ronald J Kimball.
 
 This program is free and open software.  You may use, modify, or
 distribute this program (and any modified variants) in any way you
