@@ -1,19 +1,19 @@
 #!/usr/local/bin/perl -w
 
-# $Header: /usr/people/rjk/words/RCS/ladder.pl,v 1.4 2001/01/10 15:39:48 rjk Exp rjk $
+# $Header: /usr/people/rjk/words/RCS/ladder.pl,v 1.5 2001/02/07 04:23:20 rjk Exp rjk $
 
 use strict;
 
 use vars qw($VERSION);
-$VERSION = q$Revision: 1.4 $ =~ /Revision:\s*(\S*)/;
+$VERSION = q$Revision: 1.5 $ =~ /Revision:\s*(\S*)/;
 
 use Getopt::Std;
 
-use vars qw($opt_w);
+use vars qw($opt_w $opt_a);
 
-if (not getopts('w:') or @ARGV < 3 or $ARGV[2] =~ /\D/) {
+if (not getopts('w:a') or @ARGV < 3 or $ARGV[2] =~ /\D/) {
     die <<EOT;
-usage: $0 [-w <wordlist>] <word> <word> <max> [<bad word> ...]
+usage: $0 [-w <wordlist>] [-a] <word> <word> <max> [<bad word> ...]
 EOT
 }
 
@@ -52,7 +52,7 @@ my @words = ({$word[0] => [], @bad}, {$word[1] => [], @bad});
                                              # set up both halves of
                                              #  the word path array
 
-my @solution;
+my @solutions;
 
 my $p = 0;                                   # parity; which side of the
                                              #   ladder is being extended
@@ -70,6 +70,8 @@ while (1) {
     }
 
     if ($cur eq 'break') {                   # no more paths to extend
+        last if @solutions;                  # no more solutions at this length
+
         push @{$queue[$p]}, 'break' if @{$queue[$p]};
         $p ^= 1;                             # switch to other side of ladder
         redo;
@@ -83,8 +85,9 @@ while (1) {
     my $step;
     foreach $step (@step) {
         if ($words[$p ^ 1]{$step}) {
-            @solution = (@$cur, $step, reverse @{$words[$p ^ 1]{$step}});
-            last STEP;
+            push @solutions, [@$cur, $step, reverse @{$words[$p ^ 1]{$step}}];
+            last STEP unless $opt_a;         # stop unless looking for all
+                                             #  solutions of this length
         }
 
         next if defined $words[$p]{$step};   # skip words already in path
@@ -101,11 +104,11 @@ while (1) {
 }
 
 
-if (@solution) {                             # found a solution!
-    if ($solution[0] eq $word[1]) {          # print it, in desired order
-        @solution = reverse @solution;
+foreach my $solution (@solutions) {          # for each solution found, if any
+    if ($solution->[0] eq $word[1]) {        # print solution, in desired order
+        $solution = [ reverse @$solution ];
     }
-    print "@solution\n";
+    print "@$solution\n";
 }
 
 exit 0;
@@ -156,7 +159,7 @@ B<ladder> -- find words which can be made from a string of letters
 
 =head1 SYNOPSIS
 
-B<ladder> [B<-w> I<wordlist>] I<start-word> I<end-word> I<max-length>
+B<ladder> [B<-w> I<wordlist>] [B<-a>] I<start-word> I<end-word> I<max-length>
        [I<bad-word> ...]
 
 =head1 DESCRIPTION
@@ -184,6 +187,12 @@ B<ladder> accepts the following options:
 By default, B<ladder> looks for a word file named 'wordlist' in the
 same directory as the executable.  Use the B<-w> option to specify the
 path to an alternate word list.
+
+=item B<-a>
+
+By default, B<ladder> stops at the first solution it finds.  With
+B<-a>, B<ladder> will continue to find all solutions of the same
+length as the first.
 
 =back
 
