@@ -1,6 +1,6 @@
 #!/usr/linguist/bin/perl -w
 
-# $Header: /home/r/rjk/words/RCS/cryptosolve.pl,v 1.5 2002/04/23 19:42:08 rjk Exp rjk $
+# $Header: /home/r/rjk/words/RCS/cryptosolve.pl,v 1.6 2002/04/23 21:18:15 rjk Exp rjk $
 
 use strict;
 use Getopt::Std;
@@ -363,8 +363,7 @@ sub try {
 }
 
 
-# translate some or all of the base letters in a word
-# according to the specified translation
+# translate base letters in a word according to the specified translation
 # (base letters are in uppercase)
 
 sub translate {
@@ -442,8 +441,11 @@ sub eliminate_words {
 
 # given a base word and a list of letters which have already been used
 # create a regex to match possible real words
+# when called in a list context, also returns a hash mapping base letters
+# to matching groups in the regex
 # uppercase letters are wildcards
 # lowercase letters are matched literally
+# e.g. cXYYZ yields /^c(.)(?!\1)(.)\2(?!\1|\2)(.)$/
 
 sub crypto_regex {
     my($word, $used) = @_;
@@ -462,17 +464,31 @@ sub crypto_regex {
         if (/[a-z]/) {
             $regex .= "$_";
         } elsif (/[A-Z]/) {
+
             if (exists $template{$_}) {
+                # repeated occurrence of this base letter
+                # match the corresponding backreference
+
                 $regex .= "\\$template{$_}";
+
             } else {
+                # first occurrence of this base letter
+
                 $curr++;
+
                 if (@avoid) {
+                    # don't match letters matched by other base letters
+
                     $regex .= '(?!' . join('|', @avoid) . ')';
                 }
+
                 $regex .= "($dot)";
+
                 $template{$_} = $curr;
                 push @avoid, "\\$template{$_}";
+
             }
+
         } else {
             warn "ignoring $_";
         }
