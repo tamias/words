@@ -1,11 +1,11 @@
 #!/usr/local/bin/perl -w
 
-# $Header: /usr/people/rjk/words/RCS/ladder.pl,v 1.4 2001/01/10 15:39:48 rjk Exp rjk $
+# $Header: /usr/people/rjk/words/RCS/boggler.pl,v 1.1 2001/02/07 05:11:15 rjk Exp rjk $
 
 use strict;
 
 use vars qw($VERSION);
-$VERSION = q$Revision: 1.4 $ =~ /Revision:\s*(\S*)/;
+$VERSION = q$Revision: 1.1 $ =~ /Revision:\s*(\S*)/;
 
 use Getopt::Std;
 
@@ -46,7 +46,7 @@ for (@ARGV) {
 }
 
 
-# create dictionary
+# create dictionary, as a dictionary tree
 
 open(DICT, $dict) or die "Can't open $dict: $!\n";
 
@@ -185,10 +185,10 @@ path to an alternate word list.
 
 =item B<-q>
 
-Normally, B<boggler> will treat the letter 'q' as a literal 'q'.  With
-the B<-q> option, B<boggler> treats 'q' as the string 'qu' instead.
-This mimics the game Boggle, which has a cube printed 'Qu'; the letter
-'q' by itself is not very useful, of course.
+Normally, B<boggler> will assume the letter 'q' in the block of
+letters represents 'qu'.  (The game Boggle has a cube printed 'Qu'.)
+With the B<-q> option, B<boggler> will treat 'q' as 'q'.  Of course,
+this makes the letter 'q' harder to use in a word.
 
 =back
 
