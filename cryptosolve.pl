@@ -1,6 +1,6 @@
 #!/usr/local/bin/perl -w
 
-# $Header: /home/r/rjk/words/RCS/cryptosolve.pl,v 1.10 2002/05/08 02:43:43 rjk Exp rjk $
+# $Header: /home/r/rjk/words/RCS/cryptosolve.pl,v 1.11 2003/03/11 18:04:45 rjk Exp rjk $
 
 use strict;
 use Getopt::Std;
@@ -519,7 +519,12 @@ B<cryptosolve> [B<-w> I<wordlist>] [B<-D>] [B<-E>] [cryptogram]
 
 =head1 DESCRIPTION
 
-B<cryptosolve> finds solutions to standard cryptograms.
+B<cryptosolve> finds solutions to standard cryptograms, using an
+optimized brute force approach.
+
+The cryptogram may be passed on the command line or via standard
+input.  To solve a cryptogram stored in a file, the file should be
+directed to standard input, e.g. C<cryptosolve E<lt> cryptogram.txt>.
 
 =head2 OPTIONS
 
@@ -554,9 +559,6 @@ useful for debugging purposes.
 
 =back
 
-The cryptogram may be passed on the command line or via standard
-input.
-
 =head1 FILES
 
 =over 4
@@ -577,7 +579,7 @@ Still takes an inordinate amount of time to solve some cryptograms.
 
 =head1 AUTHOR
 
-Ronald J Kimball <rjk@linguist.dartmouth.edu>
+Ronald J Kimball <rjk-perl@tamias.net>
 
 =head1 COPYRIGHT and LICENSE
 
