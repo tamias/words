@@ -1,11 +1,11 @@
 #!/usr/local/bin/perl -w
 
-# $Header: /usr/people/rjk/words/RCS/boggler.pl,v 1.3 2001/02/09 19:34:20 rjk Exp rjk $
+# $Header: /home/r/rjk/words/RCS/boggler.pl,v 1.4 2002/02/21 15:14:09 rjk Exp rjk $
 
 use strict;
 
 use vars qw($VERSION);
-$VERSION = q$Revision: 1.3 $ =~ /Revision:\s*(\S*)/;
+$VERSION = q$Revision: 1.4 $ =~ /Revision:\s*(\S*)/;
 
 use Getopt::Std;
 
@@ -93,14 +93,8 @@ exit;
 
 my %words;
 
-use vars qw /$visited/;
-
-INIT { $visited = ''; }
-
 sub search {
-    my($Y, $X, $letters, $dict) = @_;
-
-    local($visited) = $visited;
+    my($Y, $X, $letters, $dict, $visited) = @_;
 
     return if vec($visited, $Y * $width + $X, 1);
 
@@ -145,7 +139,7 @@ sub search {
             my $newX = $X + $x;
             next if $newX < 0 or $newX > $width - 1;
 
-            search($newY, $newX, $letters, $dict);
+            search($newY, $newX, $letters, $dict, $visited);
         }
     }
 
@@ -225,7 +219,7 @@ B<boggler> has no known bugs.
 =head1 AUTHOR
 
 B<boggler> was written by Ronald J Kimball,
-I<rjk@linguist.dartmouth.edu>.
+I<rjk-perl@tamias.net>.
 
 =head1 COPYRIGHT and LICENSE
 
