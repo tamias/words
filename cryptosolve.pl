@@ -1,6 +1,6 @@
 #!/usr/linguist/bin/perl -w
 
-# $Header: $
+# $Header: /usr/people/rjk/words/RCS/cryptosolve.pl,v 1.1 2001/03/06 03:56:34 rjk Exp rjk $
 
 use strict;
 use Getopt::Std;
@@ -21,18 +21,18 @@ if (@ARGV) {
     @crypto = @ARGV;
 } else {
     local $/;
-    @crypto = split ' ', lc <>;
+    @crypto = split ' ', <>;
 }
 
 my $crypto = "@crypto";
 
 print "$crypto\n";
 
-@crypto = grep { s/[,.]$//; !/[^a-z]/ } @crypto;
+@crypto = grep { s/[,.]$//; /^[a-zA-Z]+$/ } @crypto;
 
 print "@crypto\n";
 
-my @canon = map crypto_canon($_), @crypto;
+my @regex = map scalar(crypto_regex($_)), @crypto;
 my @words = map [ length == 1 ? ('a', 'i') : () ], @crypto;
 
 while (<DICT>) {
@@ -43,9 +43,9 @@ while (<DICT>) {
     
     my $crypt;
 
-    for my $i (0 .. $#canon) {
-        next if length $canon[$i] != length $_;
-        next if $canon[$i] ne ($crypt ||= &crypto_canon($_));
+    for my $i (0 .. $#crypto) {
+        next unless length $crypto[$i] == length $_;
+        next unless /$regex[$i]/;
 
         push @{$words[$i]}, $_;
     }
@@ -145,7 +145,7 @@ for my $trans (@solutions) {
     print translate($trans, $crypto), "\n";
 }
 
-1;
+exit;
 
 sub try {
     my($trans, $rtrans, $order) = @_;
@@ -158,11 +158,15 @@ sub try {
 
     my $c = $order->[0];
     my $curr = translate($trans, $crypto[$c]);
-    my $canon = crypto_canon($curr);
+    my($regex, $template) = crypto_regex($curr);
 
     for my $word (@{$words[$c]}) {
-        my($rc, %new_trans) = crypto_match($curr, $canon, $word, $rtrans);
-        if ($rc) {
+        if (my(@matches) = $word =~ /$regex/) {
+            unshift @matches, '';
+
+            my %new_trans;
+            @new_trans{ keys %$template } = @matches[ values %$template ];
+
             push @return,
               try( { %$trans, %new_trans },
                    { reverse(%$trans, %new_trans) },
@@ -170,14 +174,15 @@ sub try {
                  );
         }
     }
+
     @return;
 }
 
 sub translate {
     my($trans, $word) = @_;
 
-    my $from = quotemeta join '', keys %$trans;
-    my $to   = uc quotemeta join '', values %$trans;
+    my $from = uc quotemeta join '', keys %$trans;
+    my $to   = quotemeta join '', values %$trans;
 
     eval "\$word =~ tr/$from/$to/";
     $word;
@@ -188,10 +193,12 @@ sub make_classes {
 
     my @base = split //, $base;
 
+    my @i = map { $base[$_] =~ /[A-Z]/ ? $_ : () } 0 .. $#base;
+
     my %classes;
 
     for my $word (@$words) {
-        for (my $i = 0; $i < length $word; ++$i) {
+        for my $i (@i) {
             $classes{$base[$i]}{substr $word, $i, 1} = 1;
         }
     }
@@ -204,7 +211,11 @@ sub eliminate_words {
     my $re;
 
     for my $letter (split //, $base) {
-        $re .= $classes->{$letter};
+        if ($letter =~ /[A-Z]/) {
+            $re .= $classes->{$letter};
+        } else {
+            $re .= $letter;
+        }
     }
 
     $re = qr/$re/;
@@ -224,54 +235,111 @@ sub eliminate_words {
     return;
 }
 
-sub crypto_match {
-    my($base, $canon, $word, $rtrans) = @_;
-
-    return if length $base != length $word;
-
-    my @base  = split //, $base;
-    my @canon = split //, $canon;
-    my @word  = split //, $word;
-
-    my %letters;
-    my %trans;
-    my $next = 'a';
-
-    for my $i (0 .. $#base) {
-        if ($canon[$i] eq uc $canon[$i]) {     # uppercase or non-letter
-            return if $canon[$i] ne uc $word[$i];
-            next;
-        }
-
-        if (not exists $letters{$word[$i]}) {
-            return if $rtrans->{$word[$i]};
-
-            $letters{$word[$i]} = $next++;
-            $trans{$base[$i]} = $word[$i];
-        }
-
-        return if $canon[$i] ne $letters{$word[$i]};
-    }
-
-    return(1, %trans);
-}
-
-sub crypto_canon {
+sub crypto_regex {
     my($word) = @_;
 
-    my $canon;
-    my %letters;
-    my $next = 'a';
+    my $regex = '^';
+    my %template;
+    my @avoid;
+    my $curr = 0;
 
     foreach (split //, $word) {
-        if ($_ !~ /[a-z]/) {
-            $canon .= $_;
-            next;
-        } elsif (not exists $letters{$_}) {
-            $letters{$_} = $next++;
+        if (/[a-z]/) {
+            $regex .= "$_";
+        } elsif (/[A-Z]/) {
+            if (exists $template{$_}) {
+                $regex .= "\\$template{$_}";
+            } else {
+                $curr++;
+                if (@avoid) {
+                    $regex .= '(?!' . join('|', @avoid) . ')';
+                }
+                $regex .= '(.)';
+                $template{$_} = $curr;
+                push @avoid, "\\$template{$_}";
+            }
+        } else {
+            warn "ignoring $_";
         }
-        $canon .= $letters{$_};
     }
-    $canon;
+    $regex .= '$';
+
+    $regex = qr/$regex/;
+
+    return wantarray ? ($regex, \%template) : $regex;
 }
+
+__END__
+
+=pod
+
+=head1 NAME
+
+B<cryptosolve> -- solve standard cryptograms
+
+=head1 SYNOPSIS
+
+B<cryptosolve> [B<-w> I<wordlist>] [B<-D>] [B<-E>]
+
+=head1 DESCRIPTION
+
+B<cryptosolve> finds solutions to standard cryptograms.
+
+=head2 OPTIONS
+
+B<cryptosolve> accepts the following options:
+
+=over 4
+
+=item B<-w> I<wordlist>
+
+By default, B<cryptosolve> looks for a file named 'wordlist' in the
+same directory as the executable.  Use the B<-w> option to specify the
+path to an alternate word list.
+
+=item B<-D>
+
+Use the B<-D> option to turn on debugging output.
+
+=item B<-E>
+
+Normally, B<cryptosolve> will repeatedly eliminate words until it
+reaches a point where no more words can be eliminated.  Use the B<-E>
+option to have only one round of elimination performed.  This may be
+useful for debugging purposes.
+
+=back
+
+=head1 FILES
+
+=over 4
+
+=item F<wordlist>
+
+The list of words, found with the executable.
+
+For a comprehensive word list, the author recommends the ENABLE word
+list, with more than 172,000 words, which can be found at
+http://personal.riverusers.com/~thegrendel/software.html.
+
+=back
+
+=head1 BUGS
+
+Still takes an inordinate amount of time to solve some cryptograms.
+
+=head1 AUTHOR
+
+B<cryptosolve> was written by Ronald J Kimball,
+I<rjk@linguist.dartmouth.edu>.
+
+=head1 COPYRIGHT and LICENSE
+
+This program is copyright 2001 by Ronald J Kimball.
+
+This program is free and open software.  You may use, modify, or
+distribute this program (and any modified variants) in any way you
+wish, provided you do not restrict others from doing the same.
+
+=cut
 
