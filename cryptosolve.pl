@@ -1,6 +1,6 @@
 #!/usr/linguist/bin/perl -w
 
-# $Header: /usr/people/rjk/words/RCS/cryptosolve.pl,v 1.2 2001/08/20 21:08:31 rjk Exp rjk $
+# $Header: /usr/people/rjk/words/RCS/cryptosolve.pl,v 1.3 2001/08/22 15:56:34 rjk Exp rjk $
 
 use strict;
 use Getopt::Std;
@@ -34,7 +34,7 @@ my $crypto = "@crypto";
 
 print "$crypto\n";
 
-@crypto = grep { s/[,.]$//; /^[a-zA-Z]+$/ } @crypto;
+@crypto = grep { s/^"//; s/[,."]+$//; /^[a-zA-Z]+$/ } @crypto;
 
 print "@crypto\n";
 
@@ -58,20 +58,25 @@ while (<DICT>) {
 }
 
 
-my $no_words;
 my $total = 0;
 
-for (@words) {
-    if (!@$_) {
-        $no_words = 1;
+my @no_words;
+
+for my $i (0 .. $#crypto) {
+    my $c = @{ $words[$i] };
+    
+    if (not $c) {
+        push @no_words, $crypto[$i];
     }
-    $total += @$_;
-    print scalar(@$_), ' ' if $DEBUG;
+    
+    $total += $c;
+    print "$c " if $DEBUG;
 }
+
 print "\n" if $DEBUG;
 
-if ($no_words) {
-    die "No translations were found in the word list.\n";
+if (@no_words) {
+    die "No possible word matches for @no_words.\n";
 }
 
 my $last_total = 0;
@@ -130,11 +135,24 @@ while ($total != $last_total) {
     $last_total = $total;
     $total = 0;
 
-    for (@words) {
-        $total += @$_;
-        print scalar(@$_), ' ' if $DEBUG;
+    my @no_words;
+
+    for my $i (0 .. $#crypto) {
+        my $c = @{ $words[$i] };
+
+        if (not $c) {
+            push @no_words, $crypto[$i];
+        }
+
+        $total += $c;
+        print "$c " if $DEBUG;
     }
+
     print "\n" if $DEBUG;
+
+    if (@no_words) {
+        die "No remaining word matches for @no_words.\n";
+    }
 
     last if $ELIMINATE_ONCE;
 
@@ -145,7 +163,7 @@ my @order = sort { @{$words[$a]} <=> @{$words[$b]} ||
                  } 0 .. $#words;
 
 
-my @solutions = try({}, {}, \@order);
+my @solutions = try({}, \@order);
 
 for my $trans (@solutions) {
     print translate($trans, $crypto), "\n";
@@ -154,7 +172,7 @@ for my $trans (@solutions) {
 exit;
 
 sub try {
-    my($trans, $rtrans, $order) = @_;
+    my($trans, $order) = @_;
 
     if (not @$order) {
         return $trans;
@@ -175,7 +193,6 @@ sub try {
 
             push @return,
               try( { %$trans, %new_trans },
-                   { reverse(%$trans, %new_trans) },
                    [ @{$order}[1..$#$order] ]
                  );
         }
