@@ -1,6 +1,6 @@
 #!/usr/linguist/bin/perl -w
 
-# $Header: /home/r/rjk/words/RCS/cryptosolve.pl,v 1.7 2002/04/23 21:41:47 rjk Exp rjk $
+# $Header: /home/r/rjk/words/RCS/cryptosolve.pl,v 1.8 2002/04/23 21:48:35 rjk Exp rjk $
 
 use strict;
 use Getopt::Std;
@@ -117,6 +117,8 @@ my $last_total = 0;
 my %trans;
 
 while ($total != $last_total) {
+
+    print join(' ', map $_->[0], @words), "\n" if $DEBUG;
 
     # get the set of translations for the letters in the first base word
 
@@ -314,7 +316,7 @@ sub try2_recurse {
     foreach my $t (keys %{$trans->{$l}}) {
         next if $rtry->{$t};
         push @return,
-          try2_recurse({ %$try, $l => $t }, { reverse(%$try, $l => $t) },
+          try2_recurse({ %$try, $l => $t }, { %$rtry, $t => $l },
                        $trans, $letters, $p + 1);
     }
 
