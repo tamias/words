@@ -37,6 +37,8 @@ if (open(IDX, $wordidx)) {               # open word index
 
 my $letters;
 foreach $letters (@ARGV) {               # for each letter sequence
+	my $words;
+
 	print "-- $letters --\n";
 
 	my %letters;
@@ -79,11 +81,12 @@ foreach $letters (@ARGV) {               # for each letter sequence
 			}
 
 			print "$word\n";             # success - print word
+			$words++;
 
 		} # WORD: while (defined($word = <DICT>))
 
 	} # IDX: foreach $letter (sort keys %idx)
 
-	print "\n";
+	print "$words\n\n";
 
 } # foreach $letters (ARGV)
