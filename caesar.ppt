@@ -3,7 +3,7 @@
 use strict;
 
 use vars qw($VERSION);
-$VERSION = q$Revision: 1.1 $ =~ /Revision:\s*(\S*)/;
+$VERSION = q$Revision: 1.2 $ =~ /Revision:\s*(\S*)/;
 
 # optional argument specifies rotation
 if (@ARGV) {
@@ -75,7 +75,7 @@ exit 0;
 
 sub rotate {
     my $rot = shift @_;
-    my $replace;
+    my $replace = '';
 
     if ($rot =~ /\D/) {
         die "$0: Bad rotation value: $rot\n";
@@ -84,8 +84,10 @@ sub rotate {
     $rot %= 26;
 
     # construct replacement class
-    $replace = chr(ord('A')+$rot) . '-ZA-' . chr(ord('A')+$rot-1);
-    $replace .= lc($replace);
+    if ($rot != 0) {
+        $replace = chr(ord('A')+$rot) . '-ZA-' . chr(ord('A')+$rot-1);
+        $replace .= lc($replace);
+    }
 
     # process input buffer, if applicable
     $_ = '';
@@ -96,7 +98,7 @@ sub rotate {
     # process input
     eval <<EOEVAL;
     do {
-        tr/A-Za-z/$replace/;
+        tr/A-Za-z/$replace/ if \$replace;
         print;
     } while (<>);
 EOEVAL
@@ -152,6 +154,10 @@ an algorithm suggested by Bob Morris.
 =head1 REVISION HISTORY
 
     $Log: caesar.ppt,v $
+    Revision 1.2  2003/06/05 03:40:07  rjk
+    minor improvements
+    new email address
+
     Revision 1.1  2000/01/07 21:56:27  rjk
     Initial revision
 
