@@ -1,18 +1,18 @@
 #!/usr/local/bin/perl -w
 
-# $Header: /home/r/rjk/words/RCS/ladder.pl,v 1.7 2003/06/05 03:38:36 rjk Exp rjk $
+# $Header: /usr/home/rjk/words/RCS/ladder.pl,v 1.8 2004/08/30 03:05:42 rjk Exp rjk $
 
 use strict;
 
 use vars qw($VERSION);
-$VERSION = q$Revision: 1.7 $ =~ /Revision:\s*(\S*)/;
+$VERSION = q$Revision: 1.8 $ =~ /Revision:\s*(\S*)/;
 
 use Getopt::Std;
 
 use vars qw($opt_w $opt_a);
 
 if (not getopts('w:a') or @ARGV < 2) {
-    die <<EOT;
+  die <<EOT;
 usage: $0 [-w <wordlist>] [-a] <word> <word> [<bad word> ...]
 EOT
 }
@@ -22,7 +22,7 @@ my @word = splice @ARGV, 0, 2;
 my @bad = @ARGV;
 
 if (length $word[0] != length $word[1]) {
-    die "Target words must be the same length.\n";
+  die "Target words must be the same length.\n";
 }
 
 @bad = map { ($_, 0) } @bad;                 # for use in hash below
@@ -34,9 +34,9 @@ open(WORDS, $wordlist) or die "Can't open $wordlist: $!\n";
 my @wordlist;
 
 while (<WORDS>) {                            # load word list into memory
-    chomp;
-    push @wordlist, lc $_
-      if length $_ == length $word[0];
+  chomp;
+  push @wordlist, lc $_
+    if length $_ == length $word[0];
 }
 close(WORDS);
 
@@ -59,55 +59,55 @@ my $p = 0;                                   # parity; which side of the
 STEP:
 while (1) {
 
-    my $cur = shift @{$queue[$p]};
+  my $cur = shift @{$queue[$p]};
 
-    if (not $cur) {                          # all paths are dead-ends;
-        last;                                #   give up
-    }
+  if (not $cur) {                            # all paths are dead-ends;
+    last;                                    #   give up
+  }
 
-    if ($cur eq 'break') {                   # no more paths to extend
-        last if @solutions;                  # no more solutions at this length
+  if ($cur eq 'break') {                     # no more paths to extend
+    last if @solutions;                      # no more solutions at this length
 
-        push @{$queue[$p]}, 'break' if @{$queue[$p]};
+    push @{$queue[$p]}, 'break' if @{$queue[$p]};
 
-        if (@{$queue[$p^1]} <= @{$queue[$p]}) {
-          $p ^= 1;                           # switch to other side of ladder
-        }                                    #   if it has fewer steps
+    if (@{$queue[$p^1]} <= @{$queue[$p]}) {
+      $p ^= 1;                               # switch to other side of ladder
+    }                                        #   if it has fewer steps
 
-        redo;
-    }
+    redo;
+  }
 
-    my $top = $cur->[-1];
+  my $top = $cur->[-1];
 
-    my @step = find_step($top);              # find all possible steps
+  my @step = find_step($top);                # find all possible steps
                                              #   from the current word
 
-    my $step;
-    foreach $step (@step) {
-        if ($words[$p ^ 1]{$step}) {
-            push @solutions, [@$cur, $step, reverse @{$words[$p ^ 1]{$step}}];
-            last STEP unless $opt_a;         # stop unless looking for all
+  my $step;
+  foreach $step (@step) {
+    if ($words[$p ^ 1]{$step}) {
+      push @solutions, [@$cur, $step, reverse @{$words[$p ^ 1]{$step}}];
+      last STEP unless $opt_a;               # stop unless looking for all
                                              #  solutions of this length
-        }
+    }
 
-        next if defined $words[$p]{$step};   # skip words already in path
+    next if defined $words[$p]{$step};       # skip words already in path
                                              #   and bad words
 
-        $words[$p]{$step} = [@$cur];         # add this word to path
+    $words[$p]{$step} = [@$cur];             # add this word to path
         
-        push @{$queue[$p]}, [@$cur, $step];  # put extended path on the queue
+    push @{$queue[$p]}, [@$cur, $step];      # put extended path on the queue
 
-    }
+  }
 
 }
 
 
 foreach my $solution (@solutions) {          # for each solution found, if any
-    if ($solution->[0] eq $word[1]) {        # print solution, in desired order
-        $solution = [ reverse @$solution ];
-    }
-    print "$_\n" for @$solution;
-    print "\n" if @solutions > 1;
+  if ($solution->[0] eq $word[1]) {          # print solution, in desired order
+    $solution = [ reverse @$solution ];
+  }
+  print "$_\n" for @$solution;
+  print "\n" if @solutions > 1;
 }
 
 if (not @solutions) {
@@ -121,29 +121,29 @@ exit 0;
 # returns a list of all the words in the word list
 #   that differ from $word by one character
 sub find_step {
-    my $word = shift;
+  my $word = shift;
 
-    my $re;
+  my $re;
 
-    $re = '^(?:';
+  $re = '^(?:';
 
-    $re .= join '|', map { substr(my $tmp = $word, $_, 1, '.'); $tmp }
-                         0 .. length($word) - 1;
+  $re .= join '|', map { substr(my $tmp = $word, $_, 1, '.'); $tmp }
+                       0 .. length($word) - 1;
     
-    $re .= ')$';
+  $re .= ')$';
 
     
-    $word =~ $re;                            # cache regex
+  $word =~ $re;                            # cache regex
 
-    my @matches;
+  my @matches;
 
-    for (@wordlist) {
-        if (// and $_ ne $word) {
-            push @matches, $_;
-        }
+  for (@wordlist) {
+    if (// and $_ ne $word) {
+      push @matches, $_;
     }
+  }
 
-    return @matches;
+  return @matches;
 }
 
 __END__
