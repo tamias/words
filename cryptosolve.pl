@@ -1,9 +1,11 @@
 #!/usr/linguist/bin/perl -w
 
-# $Header: /usr/people/rjk/words/RCS/cryptosolve.pl,v 1.3 2001/08/22 15:56:34 rjk Exp rjk $
+# $Header: /usr/people/rjk/words/RCS/cryptosolve.pl,v 1.4 2001/11/08 15:17:48 rjk Exp rjk $
 
 use strict;
 use Getopt::Std;
+
+$| = 1;
 
 use vars qw($opt_w $opt_u $opt_D $opt_E);
 
@@ -81,20 +83,22 @@ if (@no_words) {
 
 my $last_total = 0;
 
+my %trans;
+
 while ($total != $last_total) {
 
-    my %classes = %{ make_classes($crypto[0], $words[0]) };
+    %trans = %{ make_trans($crypto[0], $words[0]) };
 
     for my $i (1 .. $#crypto) {
-        my $tmp = make_classes($crypto[$i], $words[$i]);
+        my $tmp = make_trans($crypto[$i], $words[$i]);
 
         foreach my $base (keys %$tmp) {
-            if (not $classes{$base}) {
-                $classes{$base} = $tmp->{$base};
+            if (not $trans{$base}) {
+                $trans{$base} = $tmp->{$base};
                 next;
             }
-            foreach my $sol (keys %{$classes{$base}}) {
-                delete $classes{$base}{$sol}
+            foreach my $sol (keys %{$trans{$base}}) {
+                delete $trans{$base}{$sol}
                   unless $tmp->{$base}{$sol};
             }
         }
@@ -102,25 +106,27 @@ while ($total != $last_total) {
 
     my %definite = ();
 
-    foreach my $base (sort { keys %{$classes{$a}} <=> keys %{$classes{$b}} }
-                           keys %classes) {
-        my @keys = keys %{$classes{$base}};
+    foreach my $base (sort { keys %{$trans{$a}} <=> keys %{$trans{$b}} }
+                           keys %trans) {
+        my @keys = keys %{$trans{$base}};
         if (@keys == 1 and not exists $definite{$keys[0]}) {
             $definite{$keys[0]} = 1;
         } elsif (keys %definite) {
-            my @del = delete @{$classes{$base}}{keys %definite};
+            my @del = delete @{$trans{$base}}{keys %definite};
             redo if grep $_, @del;
         }
     }
 
     my @no_trans;
 
-    foreach my $base (sort keys %classes) {
-        if (not %{$classes{$base}}) {
+    my %classes;
+
+    foreach my $base (sort keys %trans) {
+        if (not %{$trans{$base}}) {
             push @no_trans, $base;
         }
 
-        $classes{$base} = '[' . join('', sort keys %{$classes{$base}}) . ']';
+        $classes{$base} = '[' . join('', sort keys %{$trans{$base}}) . ']';
         print "$base $classes{$base}\n" if $DEBUG;
     }
 
@@ -162,14 +168,70 @@ my @order = sort { @{$words[$a]} <=> @{$words[$b]} ||
                    length $crypto[$b] <=> length $crypto[$a]
                  } 0 .. $#words;
 
+my @solutions;
 
-my @solutions = try({}, \@order);
 
-for my $trans (@solutions) {
-    print translate($trans, $crypto), "\n";
+if (0) {
+
+    @solutions = try({}, \@order);
+
+    for my $trans (@solutions) {
+        print translate($trans, $crypto), "\n";
+    }
+
+} else {
+
+    @solutions = try2(\%trans);
+
+    for my $trans (@solutions) {
+        print translate($trans, $crypto), "\n";
+    }
+
 }
 
+
+
 exit;
+
+sub try2 {
+    my($trans) = @_;
+
+    my @letters = sort { keys %{$trans->{$a}} <=> keys %{$trans->{$b}} }
+                       keys %$trans;
+
+    try2_recurse({}, {}, $trans, \@letters, 0);
+}
+
+sub try2_recurse {
+    my($try, $rtry, $trans, $letters, $p) = @_;
+
+    if ($p > 1) {
+        foreach my $c (0 .. $#crypto) {
+            my $curr = translate($try, $crypto[$c]);
+            my $regex = crypto_regex($curr, [ values %$try ]);
+            if (!grep /$regex/, @{$words[$c]}) {
+                return;
+            }
+        }
+    }
+
+    if ($p > $#{$letters}) {
+        return $try;
+    }
+
+    my $l = $letters->[$p];
+
+    my @return;
+
+    foreach my $t (keys %{$trans->{$l}}) {
+        next if $rtry->{$t};
+        push @return,
+          try2_recurse({ %$try, $l => $t }, { reverse(%$try, $l => $t) },
+                       $trans, $letters, $p + 1);
+    }
+
+    @return;
+}
 
 sub try {
     my($trans, $order) = @_;
@@ -211,21 +273,21 @@ sub translate {
     $word;
 }
 
-sub make_classes {
+sub make_trans {
     my($base, $words) = @_;
 
     my @base = split //, $base;
 
     my @i = map { $base[$_] =~ /[A-Z]/ ? $_ : () } 0 .. $#base;
 
-    my %classes;
+    my %trans;
 
     for my $word (@$words) {
         for my $i (@i) {
-            $classes{$base[$i]}{substr $word, $i, 1} = 1;
+            $trans{$base[$i]}{substr $word, $i, 1} = 1;
         }
     }
-    return \%classes;
+    return \%trans;
 }
 
 sub eliminate_words {
