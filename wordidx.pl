@@ -1,6 +1,6 @@
 #!/usr/local/bin/perl
 
-# $Header: $
+# $Header: /usr/people/rjk/words/RCS/wordidx.pl,v 1.3 2000/12/10 23:30:37 rjk Exp rjk $
 
 use strict;
 
@@ -16,12 +16,27 @@ open(IDX, ">$idxfile") or die "Unable to open $idxfile: $!\n";
 my $offset = 0;
 my $letter = '';
 
+my %letters;
+
 while(<WORDS>) {
 	next if /^#/;
+
 	if (substr($_, 0, 1) ne $letter) {
 		$letter = substr($_, 0, 1);
+
+        if ($letters{$letter}) {
+          close(IDX);
+          unlink $idxfile;
+
+          die "Words beginning with $letter start on lines " .
+              "$letters{$letter} and $. of $wordfile.\n";
+        }
+
+        $letters{$letter} = $.;
+
 		print IDX "$letter $offset\n";
 	}
+
     $offset = tell(WORDS);
 }
 
@@ -57,7 +72,7 @@ B<wordidx> has no known bugs.
 
 =head1 AUTHOR
 
-B<words> was written by Ronald J Kimball, I<rjk@linguist.dartmouth.edu>.
+B<words> was written by Ronald J Kimball, I<rjk-perl@tamias.net>.
 
 =head1 COPYRIGHT and LICENSE
 
