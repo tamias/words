@@ -6,7 +6,7 @@ use File::Basename;
 use Getopt::Std;
 
 use vars qw($VERSION);
-$VERSION = q$Revision: $ =~ /Revision:\s*(\S*)/;
+$VERSION = q$Revision: 1.2 $ =~ /Revision:\s*(\S*)/;
 
 use vars qw($opt_w $opt_m);
 
@@ -112,7 +112,7 @@ F<wordlist>          the list of words, found with the executable
 
 For a comprehensive word list, the author recommends the ENABLE word
 list, with more than 172,000 words, which can be found at
-L<http://personal.riverusers.com/~thegrendel/software.html>.
+http://personal.riverusers.com/~thegrendel/software.html.
                 
 
 =head1 BUGS
@@ -122,6 +122,12 @@ This implementation of B<words> has no known bugs.
 =head1 REVISION HISTORY
 
     $Log: words.ppt,v $
+    Revision 1.2  1999/06/22 02:20:13  rjk
+    added /o to regex which verifies letters used
+      (regex is constant in this implementation of words)
+    added link to ENABLE word list in POD
+    added $VERSION
+
     Revision 1.1  1999/06/14 02:28:41  rjk
     Initial revision
 
