@@ -21,6 +21,6 @@ while(<WORDS>) {
 		$letter = substr($_, 0, 1);
 		print IDX "$letter $offset\n";
 	}
-	$offset += length $_;
+    $offset = tell(WORDS);
 }
 
