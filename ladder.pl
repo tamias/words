@@ -1,11 +1,11 @@
 #!/usr/local/bin/perl -w
 
-# $Header: /usr/people/rjk/words/RCS/ladder.pl,v 1.5 2001/02/07 04:23:20 rjk Exp rjk $
+# $Header: /home/r/rjk/words/RCS/ladder.pl,v 1.6 2002/09/11 23:12:49 rjk Exp rjk $
 
 use strict;
 
 use vars qw($VERSION);
-$VERSION = q$Revision: 1.5 $ =~ /Revision:\s*(\S*)/;
+$VERSION = q$Revision: 1.6 $ =~ /Revision:\s*(\S*)/;
 
 use Getopt::Std;
 
@@ -216,8 +216,7 @@ This implementation of B<ladder> has no known bugs.
 
 =head1 AUTHOR
 
-B<ladder> was written by Ronald J Kimball,
-I<rjk@linguist.dartmouth.edu>.
+B<ladder> was written by Ronald J Kimball, I<rjk-perl@tamias.net>.
 
 =head1 COPYRIGHT and LICENSE
 
@@ -228,4 +227,3 @@ distribute this program (and any modified variants) in any way you
 wish, provided you do not restrict others from doing the same.
 
 =cut
-
