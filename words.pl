@@ -1,6 +1,6 @@
 #!/usr/local/bin/perl5 -w
 
-# $Header: $
+# $Header: /people2/rjk/words/RCS/words.pl,v 1.4 98/03/31 13:40:49 rjk Exp Locker: rjk $
 
 use strict;
 
@@ -18,8 +18,7 @@ if (@ARGV < 2) {
 my $minlen = shift @ARGV;                # minimum word length
 
 if ($minlen =~ /\D/) {
-	warn "$0: <min-length> must be a whole number\n";
-	exit 1;
+	die "$0: <min-length> must be a whole number\n";
 }
 
 open(DICT, $wordlist) or                 # open word list
@@ -27,10 +26,10 @@ open(DICT, $wordlist) or                 # open word list
 
 my($idx, %idx);
 if (open(IDX, $wordidx)) {               # open word index
+	$idx = 1;                            # set index flag
 	while(<IDX>) {
 		my($letter, $offset) = split;    # load letter/offset pairs
 		$idx{$letter} = $offset;
-		$idx = 1;                        # set index flag
 	}
 } else {
 	warn "Unable to open $wordidx: $!\nProceeding without index.\n";
