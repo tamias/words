@@ -1,6 +1,6 @@
 #!/usr/linguist/bin/perl -w
 
-# $Header: /home/r/rjk/words/RCS/cryptosolve.pl,v 1.6 2002/04/23 21:18:15 rjk Exp rjk $
+# $Header: /home/r/rjk/words/RCS/cryptosolve.pl,v 1.7 2002/04/23 21:41:47 rjk Exp rjk $
 
 use strict;
 use Getopt::Std;
@@ -562,7 +562,7 @@ The list of words, found with the executable.
 
 For a comprehensive word list, the author recommends the ENABLE word
 list, with more than 172,000 words, which can be found at
-http://personal.riverusers.com/~thegrendel/software.html.
+http://personal.riverusers.com/~thegrendel/software.html
 
 =back
 
@@ -572,8 +572,7 @@ Still takes an inordinate amount of time to solve some cryptograms.
 
 =head1 AUTHOR
 
-B<cryptosolve> was written by Ronald J Kimball,
-I<rjk@linguist.dartmouth.edu>.
+Ronald J Kimball <rjk@linguist.dartmouth.edu>
 
 =head1 COPYRIGHT and LICENSE
 
