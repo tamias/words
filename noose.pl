@@ -57,7 +57,7 @@ while (keys %guessed < $guesses and "@letters" =~ /_/) {
             }
         }
 
-        $word =~ s/[^$guess]/./g;
+        $word =~ s/[^$guess]/[^$guess]/g;
 
         my $q = partition_words($word);
 
