@@ -1,11 +1,11 @@
 #!/usr/local/bin/perl -w
 
-# $Header: /usr/people/rjk/words/RCS/boggler.pl,v 1.1 2001/02/07 05:11:15 rjk Exp rjk $
+# $Header: /usr/people/rjk/words/RCS/boggler.pl,v 1.2 2001/02/07 16:30:13 rjk Exp rjk $
 
 use strict;
 
 use vars qw($VERSION);
-$VERSION = q$Revision: 1.1 $ =~ /Revision:\s*(\S*)/;
+$VERSION = q$Revision: 1.2 $ =~ /Revision:\s*(\S*)/;
 
 use Getopt::Std;
 
@@ -161,15 +161,17 @@ B<boggler> [B<-w> I<wordlist>] [B<-q>] I<row> [I<row> ...]
 
 =head1 DESCRIPTION
 
-B<boggler> finds words in a block of letters, in the manner of the game
-Boggle from Parker Brothers.  A word is spelled out by joining letters
-up, down, sideways, and diagonally, in a continuous path.  The same
-instance of a letter may not be used more than once in the same word.
+B<boggler> finds words in a block of letters, in the manner of the
+game Boggle from Parker Brothers.  A word is spelled out by joining
+letters up, down, sideways, and diagonally, in a continuous path.
+The same instance of a letter may not be used more than once in the
+same word.
 
-B<boggler> will print all words that can be spelled out with the given
-block of letters.  Each row of letters in the block is passed as a
-separate argument.  The standard block is four letters by four
-letters, but B<boggler> will accept any rectangular block of letters.
+B<boggler> will print all words that can be spelled out with the
+given block of letters.  Each row of letters in the block is passed
+as a separate argument.  The standard block is four letters by four
+letters, but B<boggler> will accept any rectangular block of
+letters.
 
 =head2 OPTIONS
 
@@ -180,8 +182,8 @@ B<boggler> accepts the following options:
 =item B<-w> I<wordlist>
 
 By default, B<boggler> looks for a word file named 'wordlist' in the
-same directory as the executable.  Use the B<-w> option to specify the
-path to an alternate word list.
+same directory as the executable.  Use the B<-w> option to specify
+the path to an alternate word list.
 
 =item B<-q>
 
