@@ -1,0 +1,164 @@
+#!/usr/local/bin/perl -w
+
+use strict;
+
+use vars qw($VERSION);
+$VERSION = q$Revision: 1.1 $ =~ /Revision:\s*(\S*)/;
+
+# optional argument specifies rotation
+if (@ARGV) {
+    my $rot = $ARGV[0];
+    @ARGV = ();
+    rotate($rot);
+    exit 0;
+}
+
+# determine most-likely rotation
+
+# letter frequencies (taken from some unix(tm) documentation)
+# (unix is a trademark of Bell Laboratories)
+my @freq =
+    (7.97, 1.35, 3.61, 4.78, 12.37, 2.01, 1.46, 4.49, 6.39, 0.04,
+     0.42, 3.81, 2.69, 5.92,  6.96, 2.91, 0.08, 6.63, 8.77, 9.68,
+     2.62, 0.81, 1.88, 0.23,  2.07, 0.06,
+     );
+
+# adjust frequency table; make low frequencies really low
+foreach (@freq) {
+    $_ = log($_) + log(26 / 100);
+}
+
+# letter counts for input
+my @count = ((0) x 26);
+
+my $inbuf;
+my $LINELENGTH = 2048;
+my $len;
+
+if (not defined($len = read(STDIN, $inbuf, $LINELENGTH))) {
+    die "$0: Error reading from stdin: $!\n";
+}
+
+if (!$len) {
+    exit 0;
+}
+
+# count letters in input
+foreach (split //, $inbuf) {
+    next unless tr/a-zA-Z//;            # skip non-letters
+    $count[ord(lc $_) - ord('a')]++;
+}
+
+my $try;
+my $winner;
+my $winnerdot = 0;
+
+# calculate dot-product of standard frequencies and current counts
+# for each possible rotation; save best fit
+for ($try = $winner = 0; $try < 26; ++$try) {
+    my $dot = 0;
+    my $i;
+    for ($i = 0; $i < 26; ++$i) {
+        $dot += $count[$i] * $freq[($i + $try) % 26];
+    }
+    if ($dot > $winnerdot) {
+        # got a new winner!
+        $winner = $try;
+        $winnerdot = $dot;
+    }
+}
+
+# rotate according to $winner
+rotate($winner, $inbuf);
+
+exit 0;
+
+sub rotate {
+    my $rot = shift @_;
+    my $replace;
+
+    if ($rot < 0 or $rot =~ /\D/) {
+        die "$0: Bad rotation value: $rot\n";
+    }
+
+    $rot %= 26;
+
+    # construct replacement class
+    $replace = chr(ord('A')+$rot) . '-ZA-' . chr(ord('A')+$rot-1);
+    $replace .= lc($replace);
+
+    # process input buffer, if applicable
+    $_ = '';
+    if (@_) {
+        $_ = shift @_;
+    }
+
+    # process input
+    eval <<EOEVAL;
+    do {
+        tr/A-Za-z/$replace/;
+        print;
+    } while (<>);
+EOEVAL
+}
+
+__END__
+
+=pod
+
+=head1 NAME
+
+B<caesar> - decrypt caesar ciphers
+
+=head1 SYNOPSIS
+
+B<caesar> [I<rotation>]
+
+=head1 DESCRIPTION
+
+B<caesar> attempts to decrypt caesar ciphers using English letter
+frequency statistics.  B<caesar> reads from standard input and writes
+to standard output.
+
+If the optional numeric argument I<rotation> is used, B<caesar> will
+rotate by that many letters.  Otherwise B<caesar> will try all 26
+possible rotations and choose whichever seems most likely according to
+the frequency statistics.
+
+Caesar ciphers involve rotating the letters in the input through the
+alphabet by a specified number.  The original cipher, devised by
+Julius Caesar, involved a rotation of three letters; A becomes D, B
+becomes E, C becomes F, etc.  A 13-letter rotation is often used in
+newsgroup postings.
+
+The frequencies used in this implementation are:
+
+    E 12.37, T 9.68, S 8.77, A 7.97, O 6.96, R 6.63, I 6.39, N 5.92,
+    D  4.78, H 4.49, L 3.81, C 3.61, P 2.91, M 2.69, U 2.62, Y 2.07,
+    F  2.01, W 1.88, G 1.46, B 1.35, V 0.81, K 0.42, X 0.23, Q 0.08,
+    Z  0.06, J 0.04
+
+=head1 BUGS
+
+This implementation of B<caesar> has no known bugs.
+
+=head1 AUTHOR
+
+This implementation of B<caesar> in Perl was written by Ronald J
+Kimball, I<rjk@linguist.dartmouth.edu>.  Based on caesar.c from the
+NetBSD games distribution, by Stan King and John Eldridge, which was
+based on an algorithm suggested by Bob Morris.
+
+=head1 REVISION HISTORY
+
+    $Log: caesar.ppt,v $
+
+=head1 COPYRIGHT and LICENSE
+
+This program is copyright 2000 by Ronald J Kimball.
+
+This program is free and open software.  You may use, modify, or
+distribute this program (and any modified variants) in any way you
+wish, provided you do not restrict others from doing the same.
+
+=cut
