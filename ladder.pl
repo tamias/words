@@ -1,25 +1,25 @@
 #!/usr/local/bin/perl -w
 
-# $Header: /home/r/rjk/words/RCS/ladder.pl,v 1.6 2002/09/11 23:12:49 rjk Exp rjk $
+# $Header: /home/r/rjk/words/RCS/ladder.pl,v 1.7 2003/06/05 03:38:36 rjk Exp rjk $
 
 use strict;
 
 use vars qw($VERSION);
-$VERSION = q$Revision: 1.6 $ =~ /Revision:\s*(\S*)/;
+$VERSION = q$Revision: 1.7 $ =~ /Revision:\s*(\S*)/;
 
 use Getopt::Std;
 
 use vars qw($opt_w $opt_a);
 
-if (not getopts('w:a') or @ARGV < 3 or $ARGV[2] =~ /\D/) {
+if (not getopts('w:a') or @ARGV < 2) {
     die <<EOT;
-usage: $0 [-w <wordlist>] [-a] <word> <word> <max> [<bad word> ...]
+usage: $0 [-w <wordlist>] [-a] <word> <word> [<bad word> ...]
 EOT
 }
 
-my(@word, $max, @bad);
+my @word = splice @ARGV, 0, 2;
 
-(@word[0, 1], $max, @bad) = @ARGV;
+my @bad = @ARGV;
 
 if (length $word[0] != length $word[1]) {
     die "Target words must be the same length.\n";
@@ -35,15 +35,11 @@ my @wordlist;
 
 while (<WORDS>) {                            # load word list into memory
     chomp;
-    push @wordlist, $_
+    push @wordlist, lc $_
       if length $_ == length $word[0];
 }
 close(WORDS);
 
-
-my @max = (int($max / 2) + ($max & 1), int($max / 2));
-                                             # split $max in half;
-                                             #   $max may be odd
 
 my @queue = ([[$word[0]], 'break'], [[$word[1]], 'break']);
                                              # set up both halves of the queue
@@ -73,7 +69,11 @@ while (1) {
         last if @solutions;                  # no more solutions at this length
 
         push @{$queue[$p]}, 'break' if @{$queue[$p]};
-        $p ^= 1;                             # switch to other side of ladder
+
+        if (@{$queue[$p^1]} <= @{$queue[$p]}) {
+          $p ^= 1;                           # switch to other side of ladder
+        }                                    #   if it has fewer steps
+
         redo;
     }
 
@@ -93,8 +93,6 @@ while (1) {
         next if defined $words[$p]{$step};   # skip words already in path
                                              #   and bad words
 
-        next if @{$cur} == $max[$p];         # skip if path is at max length
-
         $words[$p]{$step} = [@$cur];         # add this word to path
         
         push @{$queue[$p]}, [@$cur, $step];  # put extended path on the queue
@@ -108,7 +106,12 @@ foreach my $solution (@solutions) {          # for each solution found, if any
     if ($solution->[0] eq $word[1]) {        # print solution, in desired order
         $solution = [ reverse @$solution ];
     }
-    print "@$solution\n";
+    print "$_\n" for @$solution;
+    print "\n" if @solutions > 1;
+}
+
+if (not @solutions) {
+  die "Can't find a solution for $word[0] - $word[1].\n";
 }
 
 exit 0;
@@ -123,15 +126,9 @@ sub find_step {
     my $re;
 
     $re = '^(?:';
-    
-    my $i;
-    for ($i = 0; $i < length $word; ++$i) {
-        my $tmp = $word;
-        substr($tmp, $i, 1) = '.';
-        $re .= $tmp . '|';
-    }
-    
-    chop($re);
+
+    $re .= join '|', map { substr(my $tmp = $word, $_, 1, '.'); $tmp }
+                         0 .. length($word) - 1;
     
     $re .= ')$';
 
@@ -145,7 +142,7 @@ sub find_step {
             push @matches, $_;
         }
     }
-    
+
     return @matches;
 }
 
@@ -159,7 +156,7 @@ B<ladder> -- find words which can be made from a string of letters
 
 =head1 SYNOPSIS
 
-B<ladder> [B<-w> I<wordlist>] [B<-a>] I<start-word> I<end-word> I<max-length>
+B<ladder> [B<-w> I<wordlist>] [B<-a>] I<start-word> I<end-word>
        [I<bad-word> ...]
 
 =head1 DESCRIPTION
@@ -168,10 +165,10 @@ B<ladder> solves word ladders.  A word ladder is a progression from
 one word to another, changing exactly one letter per step.  Each
 intermediate step must also be a word.  For example; dog cog cot cat.
 
-Given the start word, the end word, and the maximum allowed length,
-B<ladder> will output a ladder between the two words.  B<ladder>
-produces no output if it is unable to find a ladder within the maximum
-length.  The start and stop word must be the same length.
+Given the start word and the end word, B<ladder> will output a ladder
+between the two words.  B<ladder> exits with an error if it is unable
+to find a ladder within the maximum length.  The start and stop word
+must be the same length.
 
 A list of bad words may be specified after the other arguments.
 B<ladder> will avoid using any of those words in the solution.
@@ -220,7 +217,7 @@ B<ladder> was written by Ronald J Kimball, I<rjk-perl@tamias.net>.
 
 =head1 COPYRIGHT and LICENSE
 
-This program is copyright 2001 by Ronald J Kimball.
+This program is copyright 2001-2004 by Ronald J Kimball.
 
 This program is free and open software.  You may use, modify, or
 distribute this program (and any modified variants) in any way you
