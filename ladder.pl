@@ -1,11 +1,11 @@
 #!/usr/local/bin/perl -w
 
-# $Header: /usr/people/rjk/words/RCS/ladder.pl,v 1.3 2000/12/14 04:59:05 rjk Exp rjk $
+# $Header: /usr/people/rjk/words/RCS/ladder.pl,v 1.4 2001/01/10 15:39:48 rjk Exp rjk $
 
 use strict;
 
 use vars qw($VERSION);
-$VERSION = q$Revision: 1.3 $ =~ /Revision:\s*(\S*)/;
+$VERSION = q$Revision: 1.4 $ =~ /Revision:\s*(\S*)/;
 
 use Getopt::Std;
 
@@ -33,7 +33,7 @@ open(WORDS, $wordlist) or die "Can't open $wordlist: $!\n";
 
 my @wordlist;
 
-while (<WORDS>) {                        # load word list into memory
+while (<WORDS>) {                            # load word list into memory
     chomp;
     push @wordlist, $_
       if length $_ == length $word[0];
@@ -156,7 +156,7 @@ B<ladder> -- find words which can be made from a string of letters
 
 =head1 SYNOPSIS
 
-B<ladder> [B<-w> I<word-file>] I<start-word> I<end-word> I<max-length>
+B<ladder> [B<-w> I<wordlist>] I<start-word> I<end-word> I<max-length>
        [I<bad-word> ...]
 
 =head1 DESCRIPTION
@@ -179,7 +179,7 @@ B<ladder> accepts the following options:
 
 =over 4
 
-=item B<-w> I<word-file>
+=item B<-w> I<wordlist>
 
 By default, B<ladder> looks for a word file named 'wordlist' in the
 same directory as the executable.  Use the B<-w> option to specify the
