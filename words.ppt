@@ -3,8 +3,10 @@
 use strict;
 
 use File::Basename;
-
 use Getopt::Std;
+
+use vars qw($VERSION);
+$VERSION = q$Revision: $ =~ /Revision:\s*(\S*)/;
 
 use vars qw($opt_w $opt_m);
 
@@ -49,7 +51,7 @@ while (defined($word = <DICT>)) {
 
     next WORD if (length($word) < $minlen);
                                      # verify length
-    next WORD if ($word =~ /[^$letters]/);
+    next WORD if ($word =~ /[^$letters]/o);
                                      # verify letters used
                                      # comments also skipped here
 
@@ -108,14 +110,19 @@ the specified length.
 
 F<wordlist>          the list of words, found with the executable
 
+For a comprehensive word list, the author recommends the ENABLE word
+list, with more than 172,000 words, which can be found at
+L<http://personal.riverusers.com/~thegrendel/software.html>.
+                
+
 =head1 BUGS
 
 This implementation of B<words> has no known bugs.
 
 =head1 REVISION HISTORY
 
-    $Log: words,v $
-    Revision 1.1  1999/13/06 21:57:42  rjk
+    $Log: words.ppt,v $
+    Revision 1.1  1999/06/14 02:28:41  rjk
     Initial revision
 
 =head1 AUTHOR
