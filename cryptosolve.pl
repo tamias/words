@@ -1,15 +1,17 @@
 #!/usr/linguist/bin/perl -w
 
-# $Header: /usr/people/rjk/words/RCS/cryptosolve.pl,v 1.1 2001/03/06 03:56:34 rjk Exp rjk $
+# $Header: /usr/people/rjk/words/RCS/cryptosolve.pl,v 1.2 2001/08/20 21:08:31 rjk Exp rjk $
 
 use strict;
 use Getopt::Std;
 
-use vars qw($opt_w $opt_D $opt_E);
+use vars qw($opt_w $opt_u $opt_D $opt_E);
 
-getopts('w:DE') || die "Bad options.\n";
+getopts('w:uDE') || die "Bad options.\n";
 
 my $dict = $opt_w || 'wordlist';
+
+my $force_upper = $opt_u;
 
 my $DEBUG = $opt_D;
 my $ELIMINATE_ONCE = $opt_E;
@@ -22,6 +24,10 @@ if (@ARGV) {
 } else {
     local $/;
     @crypto = split ' ', <>;
+}
+
+if ($force_upper) {
+    $_ = uc $_ for @crypto;
 }
 
 my $crypto = "@crypto";
@@ -158,7 +164,7 @@ sub try {
 
     my $c = $order->[0];
     my $curr = translate($trans, $crypto[$c]);
-    my($regex, $template) = crypto_regex($curr);
+    my($regex, $template) = crypto_regex($curr, [ values %$trans ]);
 
     for my $word (@{$words[$c]}) {
         if (my(@matches) = $word =~ /$regex/) {
@@ -236,12 +242,17 @@ sub eliminate_words {
 }
 
 sub crypto_regex {
-    my($word) = @_;
+    my($word, $used) = @_;
 
     my $regex = '^';
     my %template;
     my @avoid;
     my $curr = 0;
+    my $dot = '.';
+
+    if ($used and @$used) {
+        $dot = '[^' . join('', @$used) . ']';
+    }
 
     foreach (split //, $word) {
         if (/[a-z]/) {
@@ -254,7 +265,7 @@ sub crypto_regex {
                 if (@avoid) {
                     $regex .= '(?!' . join('|', @avoid) . ')';
                 }
-                $regex .= '(.)';
+                $regex .= "($dot)";
                 $template{$_} = $curr;
                 push @avoid, "\\$template{$_}";
             }
