@@ -1,6 +1,6 @@
 #!/usr/linguist/bin/perl -w
 
-# $Header: /home/r/rjk/words/RCS/cryptosolve.pl,v 1.8 2002/04/23 21:48:35 rjk Exp rjk $
+# $Header: /home/r/rjk/words/RCS/cryptosolve.pl,v 1.9 2002/04/25 14:56:03 rjk Exp rjk $
 
 use strict;
 use Getopt::Std;
@@ -42,9 +42,12 @@ print "$crypto\n";
 
 # remove obviously unimportant puncuation
 # keep only translatable words
-# (e.g. word list does not contain contractions)
+#   (e.g. word list does not contain contractions)
+# keep only unique words
 
-@crypto = grep { s/^"//; s/[,."]+$//; /^[a-zA-Z]+$/ } @crypto;
+my %seen;
+@crypto = grep { s/^"//; s/[,.";!]+$//;
+                 /^[a-zA-Z]+$/ and !$seen{$_}++ } @crypto;
 
 print "@crypto\n";
 
