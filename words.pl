@@ -1,5 +1,7 @@
 #!/usr/local/bin/perl5 -w
 
+# $Header: $
+
 use strict;
 
 use File::Basename;
@@ -35,6 +37,8 @@ if (open(IDX, $wordidx)) {               # open word index
 	$idx{0} = 0;
 }
 
+$| = 1;
+
 my $letters;
 foreach $letters (@ARGV) {               # for each letter sequence
 	my $words;
@@ -49,6 +53,8 @@ foreach $letters (@ARGV) {               # for each letter sequence
 	foreach (split(//, $letters)) {      # store letter counts
 		$letters{$_}++;
 	}
+
+	"\0" =~ /[^$letters]/;               # cache regex with successful match
 
 	my($letter, $word);
   IDX:
@@ -65,14 +71,14 @@ foreach $letters (@ARGV) {               # for each letter sequence
                                          # next letter index if index loaded
 			                             #   and done with current letter
 
-			next if $word =~ /^#/;       # skip comments
-
 			chomp($word);
 
-			next if (length($word) < $minlen);
+			next WORD if (length($word) < $minlen);
 			                             # verify length
-			next if ($word !~ /^[\Q$letters\E]+$/);
-                                         # verify letters used
+			next WORD if ($word =~ //);
+                                         # verify letters used,
+                                         #  using cached regex
+                                         # comments also skipped here
 
 			my %word;
 			foreach (split(//, $word)) { # verify letter counts
