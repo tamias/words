@@ -1,6 +1,6 @@
-#!/usr/linguist/bin/perl -w
+#!/usr/local/bin/perl -w
 
-# $Header: /people2/rjk/words/RCS/words.pl,v 1.6 98/11/18 16:21:23 rjk Exp $
+# $Header: /usr/people/rjk/words/RCS/words.pl,v 1.7 2000/12/10 23:30:17 rjk Exp $
 
 use strict;
 
@@ -130,10 +130,11 @@ printed for each string.  A string may contain non-letter characters,
 which will be ignored.
 
 For efficiency, B<words> uses an index of the wordlist file, generated
-by the L<wordidx|wordidx> program.  B<words> will output a warning and
-proceed without the index if the index file is not found, if the index
-file is older than the wordlist file, or if the index file cannot be
-opened.
+by the L<wordidx|wordidx> program.  The index file should have the
+same name as the wordlist file, with .idx appended.  B<words> will
+output a warning and proceed without the index if the index file is
+not found, if the index file is older than the wordlist file, or if
+the index file cannot be opened.
 
 =head2 OPTIONS
 
@@ -180,7 +181,7 @@ B<words> has no known bugs.
 
 =head1 AUTHOR
 
-B<words> was written by Ronald J Kimball, I<rjk@linguist.dartmouth.edu>.
+B<words> was written by Ronald J Kimball, I<rjk-perl@tamias.net>.
 
 =head1 COPYRIGHT and LICENSE
 
