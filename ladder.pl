@@ -1,6 +1,6 @@
 #!/usr/local/bin/perl -w
 
-# $Header: /usr/people/rjk/words/RCS/ladder.pl,v 1.2 2000/08/14 21:52:40 rjk Exp rjk $
+# $Header: /usr/people/rjk/words/RCS/ladder.pl,v 1.3 2000/12/14 04:59:05 rjk Exp rjk $
 
 use strict;
 
@@ -156,14 +156,14 @@ B<ladder> -- find words which can be made from a string of letters
 
 =head1 SYNOPSIS
 
-B<ladder> [B<-w> I<word file>] <start word> <end word> <max length>
-       [<bad word> ...]
+B<ladder> [B<-w> I<word-file>] I<start-word> I<end-word> I<max-length>
+       [I<bad-word> ...]
 
 =head1 DESCRIPTION
 
 B<ladder> solves word ladders.  A word ladder is a progression from
-one word to another, changing exactly one letter per step.  For
-example; dog cog cot cat.
+one word to another, changing exactly one letter per step.  Each
+intermediate step must also be a word.  For example; dog cog cot cat.
 
 Given the start word, the end word, and the maximum allowed length,
 B<ladder> will output a ladder between the two words.  B<ladder>
@@ -212,7 +212,7 @@ I<rjk@linguist.dartmouth.edu>.
 
 =head1 COPYRIGHT and LICENSE
 
-This program is copyright 2000 by Ronald J Kimball.
+This program is copyright 2001 by Ronald J Kimball.
 
 This program is free and open software.  You may use, modify, or
 distribute this program (and any modified variants) in any way you
