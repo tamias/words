@@ -1,24 +1,26 @@
 #!/usr/local/bin/perl -w
 
-# $Header: /usr/people/rjk/words/RCS/boggler.pl,v 1.2 2001/02/07 16:30:13 rjk Exp rjk $
+# $Header: /usr/people/rjk/words/RCS/boggler.pl,v 1.3 2001/02/09 19:34:20 rjk Exp rjk $
 
 use strict;
 
 use vars qw($VERSION);
-$VERSION = q$Revision: 1.2 $ =~ /Revision:\s*(\S*)/;
+$VERSION = q$Revision: 1.3 $ =~ /Revision:\s*(\S*)/;
 
 use Getopt::Std;
 
-use vars qw($opt_w $opt_d $opt_q);
+use vars qw($opt_w $opt_l $opt_d $opt_q);
 
-if (not getopts('w:qd') or !@ARGV) {
+if (not getopts('w:l:qd') or !@ARGV) {
     die <<EOT;
-usage: $0 [-w <wordlist>] [-q] <row> [<row> ...]
+usage: $0 [-w <wordlist>] [-l <minlength>] [-q] <row> [<row> ...]
 EOT
 }
 
 my $dict = $opt_w || 'wordlist';
 my $DEBUG = $opt_d;
+
+my $minlen = $opt_l || 3;
 
 my $assume_qu = !$opt_q;
 
@@ -54,6 +56,8 @@ my %dict;
 
 while (<DICT>) {
     chomp;
+
+    next if length $_ < $minlen;
 
     if ($assume_qu) {
         next if /q(?!u)/;
@@ -118,7 +122,7 @@ sub search {
 
     # if a new word has been found, print it
 
-    if ($dict->{_} and length $letters >= 3 and not $words{$letters}++) {
+    if ($dict->{_} and not $words{$letters}++) {
         my $word = $letters;
 
         $word =~ s/q/qu/g if $assume_qu;
@@ -184,6 +188,12 @@ B<boggler> accepts the following options:
 By default, B<boggler> looks for a word file named 'wordlist' in the
 same directory as the executable.  Use the B<-w> option to specify
 the path to an alternate word list.
+
+=item B<-l> I<minlength>
+
+The minimum length of allowed words.  'qu' is always counted as two
+letters, regardless of the B<-q> option.  Default for minimum length
+is 3.
 
 =item B<-q>
 
