@@ -1,35 +1,23 @@
-#!/usr/local/bin/perl -wn
+#!/usr/local/bin/perl -wln
 
-# $Header: $
+# $Header: /usr/people/rjk/words/RCS/step.pl,v 1.1 2000/04/22 02:58:19 rjk Exp rjk $
 
 use strict;
 
-my $re;
+use vars qw/$word/;
 
 INIT {
     
-    my $word = shift or die "No word.\n";
+    $word = shift or die "No word.\n";
     
     if ($word =~ /[^a-z]/) {
         die "Word must consist only of lowercase letters.\n";
     }
     
-    $re = '^(?:';
-    
-    my $i;
-    for ($i = 0; $i < length $word; ++$i) {
-        my $tmp = $word;
-        substr($tmp, $i, 1) = '.';
-        $re .= $tmp . '|';
-    }
-    
-    chop($re);
-    
-    $re .= ')$';
-
     @ARGV = 'wordlist';
 
 }
 
-
-print if /$re/o;
+next if length $_ != length $word;
+my $tmp = $word ^ $_;
+print if 1 == $tmp =~ tr/\0//c;
