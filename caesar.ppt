@@ -77,7 +77,7 @@ sub rotate {
     my $rot = shift @_;
     my $replace;
 
-    if ($rot < 0 or $rot =~ /\D/) {
+    if ($rot =~ /\D/) {
         die "$0: Bad rotation value: $rot\n";
     }
 
@@ -145,13 +145,16 @@ This implementation of B<caesar> has no known bugs.
 =head1 AUTHOR
 
 This implementation of B<caesar> in Perl was written by Ronald J
-Kimball, I<rjk@linguist.dartmouth.edu>.  Based on caesar.c from the
-NetBSD games distribution, by Stan King and John Eldridge, which was
-based on an algorithm suggested by Bob Morris.
+Kimball, I<rjk-perl@tamias.net>.  Based on caesar.c from the NetBSD
+games distribution, by Stan King and John Eldridge, which was based on
+an algorithm suggested by Bob Morris.
 
 =head1 REVISION HISTORY
 
     $Log: caesar.ppt,v $
+    Revision 1.1  2000/01/07 21:56:27  rjk
+    Initial revision
+
 
 =head1 COPYRIGHT and LICENSE
 
