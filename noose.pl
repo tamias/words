@@ -1,4 +1,4 @@
-#!/usr/linguist/bin/perl -w
+#!/usr/local/bin/perl -w
 
 use strict;
 use Getopt::Std;
@@ -78,12 +78,12 @@ exit;
 sub partition_words {
     my($pattern) = @_;
 
-    $pattern =~ /$pattern/;
+    $pattern = qr/$pattern/;
 
     my($p, $q);
 
     for ($p = $q = 0; $q < @words; ++$q) {
-        if ($words[$q] =~ //) {
+        if ($words[$q] =~ $pattern) {
             @words[$p, $q] = @words[$q, $p]
               unless $p == $q;
             $p++;
