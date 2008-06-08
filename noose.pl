@@ -3,9 +3,11 @@
 use strict;
 use Getopt::Std;
 
-use vars qw($opt_w $opt_l $opt_g);
+$| = 1;
 
-getopts('w:l:g:') || die "Bad options.\n";
+use vars qw($opt_w $opt_l $opt_g $opt_s $opt_d);
+
+getopts('w:l:g:sd') || die "Bad options.\n";
 
 my $dict = $opt_w || 'wordlist';
 
@@ -14,6 +16,10 @@ open(DICT, $dict) or die "Can't open $dict: $!\n";
 my $length = $opt_l || 6;
 
 my $guesses = $opt_g || 20;
+
+my $self_play = $opt_s;
+
+my $debug = $opt_d;
 
 my @words;
 
@@ -30,13 +36,33 @@ if (not @words) {
 
 my @letters = ('_') x $length;
 
+my %unguessed = map {$_ => 1} 'a' .. 'z';
 my %guessed;
 
 while (keys %guessed < $guesses and "@letters" =~ /_/) {
-  print "\n@letters\nGuessed: ", sort(keys %guessed), "\n? ";
+  print "\n";
 
-  my $guess = lc <STDIN>;
-  chomp $guess;
+  debug(scalar(@words), " possible word(s).");
+  debug(join(', ', @words))
+    if @words <= 10;
+
+  print "@letters\nGuessed: ", sort(keys %guessed), "\n";
+
+  print "? ";
+  my $guess;
+
+  if ($self_play) {
+    sleep 1;
+  }
+
+  if ($self_play) {
+    $guess = (keys %unguessed)[rand keys %unguessed];
+    print "$guess\n";
+    delete $unguessed{$guess};
+  } else {
+    $guess = lc <STDIN>;
+    chomp $guess;
+  }
 
   redo if length $guess > 1;
   $guess = lc $guess;
@@ -67,6 +93,14 @@ while (keys %guessed < $guesses and "@letters" =~ /_/) {
   }
 }
 
+print "\n";
+
+debug(scalar(@words), " possible word(s).");
+debug(' ' . join(', ', @words))
+  if @words <= 10;
+
+print "@letters\nGuessed: ", sort(keys %guessed), "\n";
+
 if ("@letters" =~ /_/) {
   print "\nOh no!\n";
 } else {
@@ -91,4 +125,9 @@ sub partition_words {
   }
 
   $p;
+}
+
+sub debug {
+  print STDERR "debug: ", @_, "\n"
+    if $debug;
 }
