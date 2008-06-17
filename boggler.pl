@@ -1,11 +1,11 @@
 #!/usr/local/bin/perl -w
 
-# $Header: /home/r/rjk/words/RCS/boggler.pl,v 1.4 2002/02/21 15:14:09 rjk Exp rjk $
+# $Header: /home/r/rjk/words/RCS/boggler.pl,v 1.5 2003/06/04 03:20:26 rjk Exp rjk $
 
 use strict;
 
 use vars qw($VERSION);
-$VERSION = q$Revision: 1.4 $ =~ /Revision:\s*(\S*)/;
+$VERSION = q$Revision: 1.5 $ =~ /Revision:\s*(\S*)/;
 
 use Getopt::Std;
 
@@ -27,7 +27,7 @@ my $assume_qu = !$opt_q;
 my $height = @ARGV;
 my $width  = length $ARGV[0];
 
-my $cubes = join '', @ARGV;
+my $cubes = lc join '', @ARGV;
 my @cubes;
 
 $assume_qu = 0 unless $cubes =~ /q/;
