@@ -1,6 +1,6 @@
 #!/usr/local/bin/perl -w
 
-# $Header: /home/r/rjk/words/RCS/cryptosolve.pl,v 1.11 2003/03/11 18:04:45 rjk Exp rjk $
+# $Header: /home/r/rjk/words/RCS/cryptosolve.pl,v 1.12 2003/06/04 03:36:40 rjk Exp rjk $
 
 use strict;
 use Getopt::Std;
@@ -46,7 +46,7 @@ print "$crypto\n";
 # keep only unique words
 
 my %seen;
-@crypto = grep { s/^"//; s/[,.";!]+$//;
+@crypto = grep { s/^"//; s/[,.";!?]+$//;
                  /^[a-zA-Z]+$/ and !$seen{$_}++ } @crypto;
 
 print "@crypto\n";
