@@ -3,18 +3,20 @@
 use strict;
 use warnings;
 
-my $dictionary = 'wordlist';
+use Getopt::Long;
+
+GetOptions(
+  "dictionary=s" => \ (my $dictionary = 'wordlist'),
+  "width=i"      => \ (my $width = 5),
+  "height=i"     => \ (my $height = 4),
+  "progress!"    => \  my $progress,
+) or exit 1;
 
 open my $dict_fh, '<', $dictionary
   or die "Can't open '$dictionary': $!\n";
 
 my @words;
 my %prefixes;
-
-my $progress = 1;
-
-my $width = 5;
-my $height = 4;
 
 while (<$dict_fh>) {
   chomp;
@@ -47,7 +49,7 @@ sub step {
   if ($word) {
     push @block, $word;
 
-    print "\r@block"
+    printf "\r%*s", 0 - (($height + 1) * $width), "@block"
       if $progress;
 
     foreach my $i (0 .. length($word) - 1) {
