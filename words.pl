@@ -1,25 +1,25 @@
-#!/usr/local/bin/perl -w
+#!/usr/local/bin/perl
 
 use strict;
+use warnings;
 
-use File::Basename;
+use FindBin qw/ $Bin /;
+use Getopt::Long;
 
-use Getopt::Std;
+GetOptions(
+  "wordlist=s" => \ (my $wordlist = "$Bin/wordlist"),
+) or exit 1;
 
-use vars qw($opt_w);
-
-getopts('w:') and @ARGV >= 2
-  or die "usage: words.pl [-w <wordlist>] ",
+@ARGV >= 2
+  or die "usage: words [--wordlist=<wordlist>] ",
          "<minimum length> <letters> [<letters> ...]\n";
 
-my $dir = dirname($0);
-my $wordlist = $opt_w || "$dir/wordlist";
 my $wordidx  = "$wordlist.idx";
 
 my $minlen = shift @ARGV;                # minimum word length
 
 if ($minlen =~ /\D/) {
-  die "$0: <minimum length> must be a whole number\n";
+  die "<minimum length> must be a whole number\n";
 }
 
 open(DICT, $wordlist) or                 # open word list
@@ -63,7 +63,7 @@ foreach $letters (@ARGV) {               # for each letter sequence
     $letters{$_}++;
   }
 
-  "\0" =~ /[^$letters]/;                 # cache regex with successful match
+  my $regex = qr/[^$letters]/;           # regex to restrict letters
 
   my($letter, $word);
  IDX:
@@ -84,9 +84,8 @@ foreach $letters (@ARGV) {               # for each letter sequence
 
       next WORD if (length($word) < $minlen);
                                          # verify length
-      next WORD if ($word =~ //);
-                                         # verify letters used,
-                                         #  using cached regex
+      next WORD if ($word =~ $regex);
+                                         # verify letters used
                                          # comments also skipped here
 
       my %word;
@@ -116,7 +115,7 @@ B<words> -- find words which can be made from a string of letters
 
 =head1 SYNOPSIS
 
-B<words> [B<-w> I<wordlist>] I<minimum-length> I<letters> [I<letters> ...]
+B<words> [B<--wordlist>=I<wordlist>] I<minimum-length> I<letters> [I<letters> ...]
 
 =head1 DESCRIPTION
 
@@ -140,11 +139,11 @@ B<words> accepts the following options:
 
 =over 4
 
-=item B<-w> I<wordlist>
+=item B<--wordlist>=I<wordlist>
 
 By default, B<words> looks for a word-file named 'wordlist' in the
-same directory as the executable.  Use the B<-w> option to specify the
-path to an alternate word list.
+same directory as the executable.  Use the B<--wordlist> option to
+specify the path to an alternate word list.
 
 =back
 
