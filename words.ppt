@@ -16,18 +16,18 @@ my $dir = dirname($0);
 my $wordlist = $opt_w || "$dir/wordlist";
 
 unless (@ARGV) {
-    warn "usage: $0 [-w <word-file>] [-m <min-length>] <letters>\n";
-    exit;
+  warn "usage: $0 [-w <word-file>] [-m <min-length>] <letters>\n";
+  exit;
 }
 
 my $minlen = $opt_m || 0;                # minimum word length
 
 if ($minlen =~ /\D/) {
-    die "$0: <min-length> must be a whole number\n";
+  die "$0: <min-length> must be a whole number\n";
 }
 
 open(DICT, $wordlist) or                 # open word list
-    die "Unable to open $wordlist: $!\n";
+  die "Unable to open $wordlist: $!\n";
 
 $| = 1;
 
@@ -36,33 +36,33 @@ my $words = 0;
 
 my %letters;
 
-$letters = lc $letters;              # convert to lowercase
-$letters =~ tr/a-z//cd;              # strip non-letter characters
+$letters = lc $letters;                  # convert to lowercase
+$letters =~ tr/a-z//cd;                  # strip non-letter characters
 
-foreach (split(//, $letters)) {      # store letter counts
-    $letters{$_}++;
+foreach (split(//, $letters)) {          # store letter counts
+  $letters{$_}++;
 }
 
 my($word);
 WORD:
 while (defined($word = <DICT>)) {
-                                     # for each word in list
-    chomp($word);
+                                         # for each word in list
+  chomp($word);
 
-    next WORD if (length($word) < $minlen);
-                                     # verify length
-    next WORD if ($word =~ /[^$letters]/o);
-                                     # verify letters used
-                                     # comments also skipped here
+  next WORD if (length($word) < $minlen);
+                                         # verify length
+  next WORD if ($word =~ /[^$letters]/o);
+                                         # verify letters used
+                                         # comments also skipped here
 
-    my %word;
-    foreach (split(//, $word)) {     # verify letter counts
-        $word{$_}++;
-        next WORD if ($word{$_} > $letters{$_});
-    }
+  my %word;
+  foreach (split(//, $word)) {           # verify letter counts
+    $word{$_}++;
+    next WORD if ($word{$_} > $letters{$_});
+  }
 
-    print "$word\n";                 # success - print word
-    $words++;
+  print "$word\n";                       # success - print word
+  $words++;
 
 } # WORD: while (defined($word = <DICT>))
 

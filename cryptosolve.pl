@@ -20,14 +20,14 @@ open(DICT, $dict) or die "Can't open $dict: $!\n";
 
 my @crypto;
 if (@ARGV) {
-    @crypto = @ARGV;
+  @crypto = @ARGV;
 } else {
-    local $/;
-    @crypto = split ' ', <>;
+  local $/;
+  @crypto = split ' ', <>;
 }
 
 if ($force_upper) {
-    $_ = uc $_ for @crypto;
+  $_ = uc $_ for @crypto;
 }
 
 
@@ -66,19 +66,19 @@ my @words = map [ length == 1 ? ('a', 'i') : () ], @crypto;
 # for each base word
 
 while (<DICT>) {
-    chomp;
+  chomp;
 
-    next if length == 1;
-    next if /[^a-z]/;
+  next if length == 1;
+  next if /[^a-z]/;
     
-    my $crypt;
+  my $crypt;
 
-    for my $i (0 .. $#crypto) {
-        next unless length $crypto[$i] == length $_;
-        next unless /$regex[$i]/;
+  for my $i (0 .. $#crypto) {
+    next unless length $crypto[$i] == length $_;
+    next unless /$regex[$i]/;
 
-        push @{$words[$i]}, $_;
-    }
+    push @{$words[$i]}, $_;
+  }
 }
 
 
@@ -91,20 +91,20 @@ my $total = 0;
 my @no_words;
 
 for my $i (0 .. $#crypto) {
-    my $c = @{ $words[$i] };
+  my $c = @{ $words[$i] };
     
-    if (not $c) {
-        push @no_words, $crypto[$i];
-    }
+  if (not $c) {
+    push @no_words, $crypto[$i];
+  }
     
-    $total += $c;
-    print "$c " if $DEBUG;
+  $total += $c;
+  print "$c " if $DEBUG;
 }
 
 print "\n" if $DEBUG;
 
 if (@no_words) {
-    die "No possible word matches for @no_words.\n";
+  die "No possible word matches for @no_words.\n";
 }
 
 
@@ -119,109 +119,109 @@ my %trans;
 
 while ($total != $last_total) {
 
-    print join(' ', map $_->[0], @words), "\n" if $DEBUG;
+  print join(' ', map $_->[0], @words), "\n" if $DEBUG;
 
-    # get the set of translations for the letters in the first base word
+  # get the set of translations for the letters in the first base word
 
-    %trans = %{ make_trans($crypto[0], $words[0]) };
+  %trans = %{ make_trans($crypto[0], $words[0]) };
 
-    for my $i (1 .. $#crypto) {
+  for my $i (1 .. $#crypto) {
 
-        # get the set of translations for the letters in the next base word
+    # get the set of translations for the letters in the next base word
 
-        my $tmp = make_trans($crypto[$i], $words[$i]);
+    my $tmp = make_trans($crypto[$i], $words[$i]);
 
-        # for each base letter, eliminate translations from previous
-        # base words which aren't possible with the current base word
-        # e.g. if previous words yielded X => A,B
-        #      and the current word yields X => B,C
-        #      the result is X => B
+    # for each base letter, eliminate translations from previous
+    # base words which aren't possible with the current base word
+    # e.g. if previous words yielded X => A,B
+    #      and the current word yields X => B,C
+    #      the result is X => B
 
-        foreach my $base (keys %$tmp) {
-            if (not $trans{$base}) {
-                $trans{$base} = $tmp->{$base};
-                next;
-            }
-            foreach my $sol (keys %{$trans{$base}}) {
-                delete $trans{$base}{$sol}
-                  unless $tmp->{$base}{$sol};
-            }
-        }
+    foreach my $base (keys %$tmp) {
+      if (not $trans{$base}) {
+        $trans{$base} = $tmp->{$base};
+        next;
+      }
+      foreach my $sol (keys %{$trans{$base}}) {
+        delete $trans{$base}{$sol}
+          unless $tmp->{$base}{$sol};
+      }
+    }
+  }
+
+
+  # for each base letter which now has only one possible translation
+  # eliminate that translation from all other bases
+
+  my %definite = ();
+
+  foreach my $base (sort { keys %{$trans{$a}} <=> keys %{$trans{$b}} }
+                         keys %trans) {
+    my @keys = keys %{$trans{$base}};
+    if (@keys == 1 and not exists $definite{$keys[0]}) {
+      $definite{$keys[0]} = 1;
+    } elsif (keys %definite) {
+      my @del = delete @{$trans{$base}}{keys %definite};
+      redo if grep $_, @del;
+    }
+  }
+
+
+  # create a character classes for each base letter
+  # make sure each base letter has at least one translation
+
+  my @no_trans;
+
+  my %classes;
+
+  foreach my $base (sort keys %trans) {
+    if (not %{$trans{$base}}) {
+      push @no_trans, $base;
     }
 
+    $classes{$base} = '[' . join('', sort keys %{$trans{$base}}) . ']';
+    print "$base $classes{$base}\n" if $DEBUG;
+  }
 
-    # for each base letter which now has only one possible translation
-    # eliminate that translation from all other bases
+  if (@no_trans) {
+    die "No possible translations for @no_trans.\n";
+  }
 
-    my %definite = ();
 
-    foreach my $base (sort { keys %{$trans{$a}} <=> keys %{$trans{$b}} }
-                           keys %trans) {
-        my @keys = keys %{$trans{$base}};
-        if (@keys == 1 and not exists $definite{$keys[0]}) {
-            $definite{$keys[0]} = 1;
-        } elsif (keys %definite) {
-            my @del = delete @{$trans{$base}}{keys %definite};
-            redo if grep $_, @del;
-        }
+  # eliminate words which are no longer possible with the new set of
+  # translations
+
+  for my $i (0 .. $#crypto) {
+    eliminate_words($crypto[$i], $words[$i], \%classes);
+  }
+
+
+  # count the new number of real words for each base word
+  # make sure each base word has at least one real word still
+
+  $last_total = $total;
+  $total = 0;
+
+  my @no_words;
+
+  for my $i (0 .. $#crypto) {
+    my $c = @{ $words[$i] };
+
+    if (not $c) {
+      push @no_words, $crypto[$i];
     }
 
+    $total += $c;
+    print "$c " if $DEBUG;
+  }
 
-    # create a character classes for each base letter
-    # make sure each base letter has at least one translation
+  print "\n" if $DEBUG;
 
-    my @no_trans;
+  if (@no_words) {
+    die "No remaining word matches for @no_words.\n";
+  }
 
-    my %classes;
-
-    foreach my $base (sort keys %trans) {
-        if (not %{$trans{$base}}) {
-            push @no_trans, $base;
-        }
-
-        $classes{$base} = '[' . join('', sort keys %{$trans{$base}}) . ']';
-        print "$base $classes{$base}\n" if $DEBUG;
-    }
-
-    if (@no_trans) {
-        die "No possible translations for @no_trans.\n";
-    }
-
-
-    # eliminate words which are no longer possible with the new set of
-    # translations
-
-    for my $i (0 .. $#crypto) {
-        eliminate_words($crypto[$i], $words[$i], \%classes);
-    }
-
-
-    # count the new number of real words for each base word
-    # make sure each base word has at least one real word still
-
-    $last_total = $total;
-    $total = 0;
-
-    my @no_words;
-
-    for my $i (0 .. $#crypto) {
-        my $c = @{ $words[$i] };
-
-        if (not $c) {
-            push @no_words, $crypto[$i];
-        }
-
-        $total += $c;
-        print "$c " if $DEBUG;
-    }
-
-    print "\n" if $DEBUG;
-
-    if (@no_words) {
-        die "No remaining word matches for @no_words.\n";
-    }
-
-    last if $ELIMINATE_ONCE;
+  last if $ELIMINATE_ONCE;
 
 }
 
@@ -232,34 +232,34 @@ my @solutions;
 
 if (0) {
 
-    # old approach
-    # try translations one base word at a time
-    # redundant when several real words share a letter
-    # e.g. XYZ => cat, cow, dog tries X => C twice
-    #      even when X => C is incorrect
+  # old approach
+  # try translations one base word at a time
+  # redundant when several real words share a letter
+  # e.g. XYZ => cat, cow, dog tries X => C twice
+  #      even when X => C is incorrect
 
-    # try base words in ascending order by number of real words
+  # try base words in ascending order by number of real words
 
-    my @order = sort { @{$words[$a]} <=> @{$words[$b]} ||
-                       length $crypto[$b] <=> length $crypto[$a]
-                     } 0 .. $#words;
+  my @order = sort { @{$words[$a]} <=> @{$words[$b]} ||
+                     length $crypto[$b] <=> length $crypto[$a]
+                   } 0 .. $#words;
 
-    @solutions = try({}, \@order);
+  @solutions = try({}, \@order);
 
-    for my $trans (@solutions) {
-        print translate($trans, $crypto), "\n";
-    }
+  for my $trans (@solutions) {
+    print translate($trans, $crypto), "\n";
+  }
 
 } else {
 
-    # new approach
-    # try translations one base letter at a time
+  # new approach
+  # try translations one base letter at a time
 
-    @solutions = try2(\%trans);
+  @solutions = try2(\%trans);
 
-    for my $trans (@solutions) {
-        print translate($trans, $crypto), "\n";
-    }
+  for my $trans (@solutions) {
+    print translate($trans, $crypto), "\n";
+  }
 
 }
 
@@ -270,12 +270,12 @@ exit;
 # in ascending order by number of translations
 
 sub try2 {
-    my($trans) = @_;
+  my($trans) = @_;
 
-    my @letters = sort { keys %{$trans->{$a}} <=> keys %{$trans->{$b}} }
-                       keys %$trans;
+  my @letters = sort { keys %{$trans->{$a}} <=> keys %{$trans->{$b}} }
+                     keys %$trans;
 
-    try2_recurse({}, {}, $trans, \@letters, 0);
+  try2_recurse({}, {}, $trans, \@letters, 0);
 }
 
 
@@ -283,45 +283,45 @@ sub try2 {
 # recursing through the remaining base letters
 
 sub try2_recurse {
-    my($try, $rtry, $trans, $letters, $p) = @_;
+  my($try, $rtry, $trans, $letters, $p) = @_;
 
 
-    # if this isn't the first base letter,
-    # make sure all base words still have at least one real word
+  # if this isn't the first base letter,
+  # make sure all base words still have at least one real word
 
-    if ($p > 1) {
-        foreach my $c (0 .. $#crypto) {
-            my $curr = translate($try, $crypto[$c]);
-            my $regex = crypto_regex($curr, [ values %$try ]);
-            if (!grep /$regex/, @{$words[$c]}) {
-                return;
-            }
-        }
+  if ($p > 1) {
+    foreach my $c (0 .. $#crypto) {
+      my $curr = translate($try, $crypto[$c]);
+      my $regex = crypto_regex($curr, [ values %$try ]);
+      if (!grep /$regex/, @{$words[$c]}) {
+        return;
+      }
     }
+  }
 
 
-    # no more base letters to translate; found a solution!
+  # no more base letters to translate; found a solution!
 
-    if ($p > $#{$letters}) {
-        return $try;
-    }
+  if ($p > $#{$letters}) {
+    return $try;
+  }
 
 
-    # recursively try all the translations for the next base letter
-    # skip translations which have already been used in this try
+  # recursively try all the translations for the next base letter
+  # skip translations which have already been used in this try
 
-    my $l = $letters->[$p];
+  my $l = $letters->[$p];
 
-    my @return;
+  my @return;
 
-    foreach my $t (keys %{$trans->{$l}}) {
-        next if $rtry->{$t};
-        push @return,
-          try2_recurse({ %$try, $l => $t }, { %$rtry, $t => $l },
-                       $trans, $letters, $p + 1);
-    }
+  foreach my $t (keys %{$trans->{$l}}) {
+    next if $rtry->{$t};
+    push @return,
+      try2_recurse({ %$try, $l => $t }, { %$rtry, $t => $l },
+                   $trans, $letters, $p + 1);
+  }
 
-    @return;
+  @return;
 }
 
 
@@ -329,40 +329,40 @@ sub try2_recurse {
 # recursing through the remaining base words
 
 sub try {
-    my($trans, $order) = @_;
+  my($trans, $order) = @_;
 
 
-    # no more base words to translate; found a solution!
+  # no more base words to translate; found a solution!
 
-    if (not @$order) {
-        return $trans;
+  if (not @$order) {
+    return $trans;
+  }
+
+  my @return;
+
+
+  # for each real word which is still possible,
+  # recursively try all the translations for the next base word
+
+  my $c = $order->[0];
+  my $curr = translate($trans, $crypto[$c]);
+  my($regex, $template) = crypto_regex($curr, [ values %$trans ]);
+
+  for my $word (@{$words[$c]}) {
+    if (my(@matches) = $word =~ /$regex/) {
+      unshift @matches, '';
+
+      my %new_trans;
+      @new_trans{ keys %$template } = @matches[ values %$template ];
+
+      push @return,
+        try( { %$trans, %new_trans },
+             [ @{$order}[1..$#$order] ]
+           );
     }
+  }
 
-    my @return;
-
-
-    # for each real word which is still possible,
-    # recursively try all the translations for the next base word
-
-    my $c = $order->[0];
-    my $curr = translate($trans, $crypto[$c]);
-    my($regex, $template) = crypto_regex($curr, [ values %$trans ]);
-
-    for my $word (@{$words[$c]}) {
-        if (my(@matches) = $word =~ /$regex/) {
-            unshift @matches, '';
-
-            my %new_trans;
-            @new_trans{ keys %$template } = @matches[ values %$template ];
-
-            push @return,
-              try( { %$trans, %new_trans },
-                   [ @{$order}[1..$#$order] ]
-                 );
-        }
-    }
-
-    @return;
+  @return;
 }
 
 
@@ -370,13 +370,13 @@ sub try {
 # (base letters are in uppercase)
 
 sub translate {
-    my($trans, $word) = @_;
+  my($trans, $word) = @_;
 
-    my $from = uc quotemeta join '', keys %$trans;
-    my $to   = quotemeta join '', values %$trans;
+  my $from = uc quotemeta join '', keys %$trans;
+  my $to   = quotemeta join '', values %$trans;
 
-    eval "\$word =~ tr/$from/$to/";
-    $word;
+  eval "\$word =~ tr/$from/$to/";
+  $word;
 }
 
 
@@ -385,20 +385,20 @@ sub translate {
 # (no eliminations are performed here)
 
 sub make_trans {
-    my($base, $words) = @_;
+  my($base, $words) = @_;
 
-    my @base = split //, $base;
+  my @base = split //, $base;
 
-    my @i = map { $base[$_] =~ /[A-Z]/ ? $_ : () } 0 .. $#base;
+  my @i = map { $base[$_] =~ /[A-Z]/ ? $_ : () } 0 .. $#base;
 
-    my %trans;
+  my %trans;
 
-    for my $word (@$words) {
-        for my $i (@i) {
-            $trans{$base[$i]}{substr $word, $i, 1} = 1;
-        }
+  for my $word (@$words) {
+    for my $i (@i) {
+      $trans{$base[$i]}{substr $word, $i, 1} = 1;
     }
-    return \%trans;
+  }
+  return \%trans;
 }
 
 
@@ -408,37 +408,37 @@ sub make_trans {
 # lowercase letters are matched exactly
 
 sub eliminate_words {
-    my($base, $words, $classes) = @_;
+  my($base, $words, $classes) = @_;
 
-    my $re;
+  my $re;
 
-    for my $letter (split //, $base) {
-        if ($letter =~ /[A-Z]/) {
-            $re .= $classes->{$letter};
-        } else {
-            $re .= $letter;
-        }
+  for my $letter (split //, $base) {
+    if ($letter =~ /[A-Z]/) {
+      $re .= $classes->{$letter};
+    } else {
+      $re .= $letter;
     }
+  }
 
-    $re = qr/$re/;
+  $re = qr/$re/;
 
 
-    # partition the list into possible and impossible words
-    # to avoid many small splices
+  # partition the list into possible and impossible words
+  # to avoid many small splices
 
-    my($p, $q);
+  my($p, $q);
 
-    for ($p = $q = 0; $q < @$words; ++$q) {
-        if ($words->[$q] =~ $re) {
-            $words->[$p] = $words->[$q]
-              unless $p == $q;
-            $p++;
-        }
+  for ($p = $q = 0; $q < @$words; ++$q) {
+    if ($words->[$q] =~ $re) {
+      $words->[$p] = $words->[$q]
+        unless $p == $q;
+      $p++;
     }
+  }
 
-    splice(@$words, $p);
+  splice(@$words, $p);
 
-    return;
+  return;
 }
 
 
@@ -451,56 +451,56 @@ sub eliminate_words {
 # e.g. cXYYZ yields /^c(.)(?!\1)(.)\2(?!\1|\2)(.)$/
 
 sub crypto_regex {
-    my($word, $used) = @_;
+  my($word, $used) = @_;
 
-    my $regex = '^';
-    my %template;
-    my @avoid;
-    my $curr = 0;
-    my $dot = '.';
+  my $regex = '^';
+  my %template;
+  my @avoid;
+  my $curr = 0;
+  my $dot = '.';
 
-    if ($used and @$used) {
-        $dot = '[^' . join('', @$used) . ']';
-    }
+  if ($used and @$used) {
+    $dot = '[^' . join('', @$used) . ']';
+  }
 
-    foreach (split //, $word) {
-        if (/[a-z]/) {
-            $regex .= "$_";
-        } elsif (/[A-Z]/) {
+  foreach (split //, $word) {
+    if (/[a-z]/) {
+      $regex .= "$_";
+    } elsif (/[A-Z]/) {
 
-            if (exists $template{$_}) {
-                # repeated occurrence of this base letter
-                # match the corresponding backreference
+      if (exists $template{$_}) {
+        # repeated occurrence of this base letter
+        # match the corresponding backreference
 
-                $regex .= "\\$template{$_}";
+        $regex .= "\\$template{$_}";
 
-            } else {
-                # first occurrence of this base letter
+      } else {
+        # first occurrence of this base letter
 
-                $curr++;
+        $curr++;
 
-                if (@avoid) {
-                    # don't match letters matched by other base letters
+        if (@avoid) {
+          # don't match letters matched by other base letters
 
-                    $regex .= '(?!' . join('|', @avoid) . ')';
-                }
-
-                $regex .= "($dot)";
-
-                $template{$_} = $curr;
-                push @avoid, "\\$template{$_}";
-
-            }
-
-        } else {
-            warn "ignoring $_";
+          $regex .= '(?!' . join('|', @avoid) . ')';
         }
+
+        $regex .= "($dot)";
+
+        $template{$_} = $curr;
+        push @avoid, "\\$template{$_}";
+
+      }
+
+    } else {
+      warn "ignoring $_";
     }
-    $regex .= '$';
+  }
+  $regex .= '$';
 
-    $regex = qr/$regex/;
+  $regex = qr/$regex/;
 
-    return wantarray ? ($regex, \%template) : $regex;
+  return wantarray ? ($regex, \%template) : $regex;
 }
 
 __END__

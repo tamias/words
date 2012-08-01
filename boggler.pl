@@ -10,7 +10,7 @@ use Getopt::Std;
 use vars qw($opt_w $opt_l $opt_d $opt_q);
 
 if (not getopts('w:l:qd') or !@ARGV) {
-    die <<EOT;
+  die <<EOT;
 usage: $0 [-w <wordlist>] [-l <minlength>] [-q] <row> [<row> ...]
 EOT
 }
@@ -34,15 +34,15 @@ $assume_qu = 0 unless $cubes =~ /q/;
 # verify rows, create array of array of cubes
 
 for (@ARGV) {
-    if (length != $width) {
-        die "All rows must be the same length.\n";
-    }
+  if (length != $width) {
+    die "All rows must be the same length.\n";
+  }
 
-    if (/[^a-zA-Z]/) {
-        die "Each row must consist only of letters.\n";
-    }
+  if (/[^a-zA-Z]/) {
+    die "Each row must consist only of letters.\n";
+  }
 
-    push @cubes, [ split //, lc $_ ];
+  push @cubes, [ split //, lc $_ ];
 }
 
 
@@ -53,25 +53,25 @@ open(DICT, $dict) or die "Can't open $dict: $!\n";
 my %dict;
 
 while (<DICT>) {
-    chomp;
+  chomp;
 
-    next if length $_ < $minlen;
+  next if length $_ < $minlen;
 
-    if ($assume_qu) {
-        next if /q(?!u)/;
-        s/qu/q/g;
-    }
+  if ($assume_qu) {
+    next if /q(?!u)/;
+    s/qu/q/g;
+  }
 
-    next if /[^$cubes]/o;
+  next if /[^$cubes]/o;
 
-    my @letters = split //;
+  my @letters = split //;
 
-    my $node = \%dict;
+  my $node = \%dict;
 
-    for my $letter (@letters) {
-        $node = $node->{$letter} ||= {};
-    }
-    $node->{_} = 1;
+  for my $letter (@letters) {
+    $node = $node->{$letter} ||= {};
+  }
+  $node->{_} = 1;
 }
 close(DICT);
 
@@ -79,9 +79,9 @@ close(DICT);
 # find and print words
 
 for my $Y (0 .. $height - 1) {
-    for my $X (0 .. $width - 1) {
-        search($Y, $X, '', \%dict, '');
-    }
+  for my $X (0 .. $width - 1) {
+    search($Y, $X, '', \%dict, '');
+  }
 }
 
 exit;
@@ -92,54 +92,54 @@ exit;
 my %words;
 
 sub search {
-    my($Y, $X, $letters, $dict, $visited) = @_;
+  my($Y, $X, $letters, $dict, $visited) = @_;
 
-    return if vec($visited, $Y * $width + $X, 1);
+  return if vec($visited, $Y * $width + $X, 1);
 
-    vec($visited, $Y * $width + $X, 1) = 1;
+  vec($visited, $Y * $width + $X, 1) = 1;
 
-    my $cube = $cubes[$Y][$X];
+  my $cube = $cubes[$Y][$X];
 
-    $letters .= $cube;
+  $letters .= $cube;
 
-    if (not $dict->{$cube}) {
-        return;
+  if (not $dict->{$cube}) {
+    return;
+  }
+
+  warn ' ' x length($letters), "searching from ($Y, $X) with '$letters'\n"
+    if $DEBUG;
+
+  $dict = $dict->{$cube};
+
+
+  # if a new word has been found, print it
+
+  if ($dict->{_} and not $words{$letters}++) {
+    my $word = $letters;
+
+    $word =~ s/q/qu/g if $assume_qu;
+
+    print "$word\n"
+  }
+
+
+  # recurse on surrounding cubes
+
+  for my $y (-1, 0, 1) {
+
+    my $newY = $Y + $y;
+    next if $newY < 0 or $newY > $height - 1;
+
+    for my $x (-1, 0, 1) {
+
+      next if $y == 0 and $x == 0;
+
+      my $newX = $X + $x;
+      next if $newX < 0 or $newX > $width - 1;
+
+      search($newY, $newX, $letters, $dict, $visited);
     }
-
-    warn ' ' x length($letters), "searching from ($Y, $X) with '$letters'\n"
-      if $DEBUG;
-
-    $dict = $dict->{$cube};
-
-
-    # if a new word has been found, print it
-
-    if ($dict->{_} and not $words{$letters}++) {
-        my $word = $letters;
-
-        $word =~ s/q/qu/g if $assume_qu;
-
-        print "$word\n"
-    }
-
-
-    # recurse on surrounding cubes
-
-    for my $y (-1, 0, 1) {
-
-        my $newY = $Y + $y;
-        next if $newY < 0 or $newY > $height - 1;
-
-        for my $x (-1, 0, 1) {
-
-            next if $y == 0 and $x == 0;
-
-            my $newX = $X + $x;
-            next if $newX < 0 or $newX > $width - 1;
-
-            search($newY, $newX, $letters, $dict, $visited);
-        }
-    }
+  }
 
 }
 

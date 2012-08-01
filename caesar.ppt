@@ -7,10 +7,10 @@ $VERSION = '1.2';
 
 # optional argument specifies rotation
 if (@ARGV) {
-    my $rot = $ARGV[0];
-    @ARGV = ();
-    rotate($rot);
-    exit 0;
+  my $rot = $ARGV[0];
+  @ARGV = ();
+  rotate($rot);
+  exit 0;
 }
 
 # determine most-likely rotation
@@ -18,14 +18,14 @@ if (@ARGV) {
 # letter frequencies (taken from some unix(tm) documentation)
 # (unix is a trademark of Bell Laboratories)
 my @freq =
-    (7.97, 1.35, 3.61, 4.78, 12.37, 2.01, 1.46, 4.49, 6.39, 0.04,
-     0.42, 3.81, 2.69, 5.92,  6.96, 2.91, 0.08, 6.63, 8.77, 9.68,
-     2.62, 0.81, 1.88, 0.23,  2.07, 0.06,
-     );
+  (7.97, 1.35, 3.61, 4.78, 12.37, 2.01, 1.46, 4.49, 6.39, 0.04,
+   0.42, 3.81, 2.69, 5.92,  6.96, 2.91, 0.08, 6.63, 8.77, 9.68,
+   2.62, 0.81, 1.88, 0.23,  2.07, 0.06,
+  );
 
 # adjust frequency table; make low frequencies really low
 foreach (@freq) {
-    $_ = log($_) + log(26 / 100);
+  $_ = log($_) + log(26 / 100);
 }
 
 # letter counts for input
@@ -36,17 +36,17 @@ my $LINELENGTH = 2048;
 my $len;
 
 if (not defined($len = read(STDIN, $inbuf, $LINELENGTH))) {
-    die "$0: Error reading from stdin: $!\n";
+  die "$0: Error reading from stdin: $!\n";
 }
 
 if (!$len) {
-    exit 0;
+  exit 0;
 }
 
 # count letters in input
 foreach (split //, $inbuf) {
-    next unless tr/a-zA-Z//;            # skip non-letters
-    $count[ord(lc $_) - ord('a')]++;
+  next unless tr/a-zA-Z//;              # skip non-letters
+  $count[ord(lc $_) - ord('a')]++;
 }
 
 my $try;
@@ -56,16 +56,16 @@ my $winnerdot = 0;
 # calculate dot-product of standard frequencies and current counts
 # for each possible rotation; save best fit
 for ($try = $winner = 0; $try < 26; ++$try) {
-    my $dot = 0;
-    my $i;
-    for ($i = 0; $i < 26; ++$i) {
-        $dot += $count[$i] * $freq[($i + $try) % 26];
-    }
-    if ($dot > $winnerdot) {
-        # got a new winner!
-        $winner = $try;
-        $winnerdot = $dot;
-    }
+  my $dot = 0;
+  my $i;
+  for ($i = 0; $i < 26; ++$i) {
+    $dot += $count[$i] * $freq[($i + $try) % 26];
+  }
+  if ($dot > $winnerdot) {
+    # got a new winner!
+    $winner = $try;
+    $winnerdot = $dot;
+  }
 }
 
 # rotate according to $winner
@@ -74,33 +74,33 @@ rotate($winner, $inbuf);
 exit 0;
 
 sub rotate {
-    my $rot = shift @_;
-    my $replace = '';
+  my $rot = shift @_;
+  my $replace = '';
 
-    if ($rot =~ /\D/) {
-        die "$0: Bad rotation value: $rot\n";
-    }
+  if ($rot =~ /\D/) {
+    die "$0: Bad rotation value: $rot\n";
+  }
 
-    $rot %= 26;
+  $rot %= 26;
 
-    # construct replacement class
-    if ($rot != 0) {
-        $replace = chr(ord('A')+$rot) . '-ZA-' . chr(ord('A')+$rot-1);
-        $replace .= lc($replace);
-    }
+  # construct replacement class
+  if ($rot != 0) {
+    $replace = chr(ord('A')+$rot) . '-ZA-' . chr(ord('A')+$rot-1);
+    $replace .= lc($replace);
+  }
+  
+  # process input buffer, if applicable
+  $_ = '';
+  if (@_) {
+    $_ = shift @_;
+  }
 
-    # process input buffer, if applicable
-    $_ = '';
-    if (@_) {
-        $_ = shift @_;
-    }
-
-    # process input
-    eval <<EOEVAL;
-    do {
-        tr/A-Za-z/$replace/ if \$replace;
-        print;
-    } while (<>);
+  # process input
+  eval <<EOEVAL;
+  do {
+    tr/A-Za-z/$replace/ if \$replace;
+    print;
+  } while (<>);
 EOEVAL
 }
 

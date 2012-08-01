@@ -6,13 +6,13 @@ use vars qw/$word/;
 
 INIT {
     
-    $word = shift or die "No word.\n";
+   $word = shift or die "No word.\n";
     
-    if ($word =~ /[^a-z]/) {
-        die "Word must consist only of lowercase letters.\n";
-    }
+   if ($word =~ /[^a-z]/) {
+       die "Word must consist only of lowercase letters.\n";
+   }
     
-    @ARGV = 'wordlist';
+   @ARGV = 'wordlist';
 
 }
 

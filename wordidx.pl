@@ -3,7 +3,7 @@
 use strict;
 
 if (@ARGV != 2) {
-	die "usage: wordidx <input file> <output file>\n";
+  die "usage: wordidx <input file> <output file>\n";
 }
 
 my($wordfile, $idxfile) = @ARGV;
@@ -17,25 +17,25 @@ my $letter = '';
 my %letters;
 
 while(<WORDS>) {
-	next if /^#/;
+  next if /^#/;
 
-	if (substr($_, 0, 1) ne $letter) {
-		$letter = substr($_, 0, 1);
+  if (substr($_, 0, 1) ne $letter) {
+    $letter = substr($_, 0, 1);
 
-        if ($letters{$letter}) {
-          close(IDX);
-          unlink $idxfile;
+    if ($letters{$letter}) {
+      close(IDX);
+      unlink $idxfile;
 
-          die "Words beginning with $letter start on lines " .
-              "$letters{$letter} and $. of $wordfile.\n";
-        }
+      die "Words beginning with $letter start on lines " .
+        "$letters{$letter} and $. of $wordfile.\n";
+    }
 
-        $letters{$letter} = $.;
+    $letters{$letter} = $.;
 
-		print IDX "$letter $offset\n";
-	}
+    print IDX "$letter $offset\n";
+  }
 
-    $offset = tell(WORDS);
+  $offset = tell(WORDS);
 }
 
 __END__
