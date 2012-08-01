@@ -48,9 +48,9 @@ if (! $idx) {
 
 $| = 1;
 
-my $letters;
-foreach $letters (@ARGV) {               # for each letter sequence
-  my $words = 0;
+my $words;
+foreach my $letters (@ARGV) {            # for each letter sequence
+  $words = 0;
 
   print "-- $letters --\n";
 
@@ -58,6 +58,12 @@ foreach $letters (@ARGV) {               # for each letter sequence
 
   $letters = lc $letters;                # convert to lowercase
   $letters =~ tr/a-z//cd;                # strip non-letter characters
+
+  length $letters                        # skip if no actual letters
+    or next;
+
+  $minlen <= length $letters             # skip if not enough letters
+    or next;
 
   foreach (split(//, $letters)) {        # store letter counts
     $letters{$_}++;
@@ -101,9 +107,9 @@ foreach $letters (@ARGV) {               # for each letter sequence
 
   } # IDX: foreach $letter (sort keys %idx)
 
+} continue { # foreach $letters (ARGV)
   print "$words\n\n";
-
-} # foreach $letters (ARGV)
+}
 
 __END__
 
