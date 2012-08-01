@@ -1,26 +1,23 @@
-#!/usr/local/bin/perl -w
+#!/usr/local/bin/perl
 
 use strict;
+use warnings;
 
-use vars qw($VERSION);
-$VERSION = '1.5';
+use Getopt::Long;
 
-use Getopt::Std;
+GetOptions(
+  "wordlist=s" => \ (my $dict = 'wordlist'),
+  "length=i"   => \ (my $minlen = 3),
+  "q!"         => \  my $q_is_q,
+  "debug!"     => \  my $DEBUG,
+) or exit 1;
 
-use vars qw($opt_w $opt_l $opt_d $opt_q);
-
-if (not getopts('w:l:qd') or !@ARGV) {
+if (!@ARGV) {
   die <<EOT;
-usage: $0 [-w <wordlist>] [-l <minlength>] [-q] <row> [<row> ...]
+usage: boggler [--wordlist=<wordlist>] [--length=<minlength>] [--qu]
+               <row> [<row> ...]
 EOT
 }
-
-my $dict = $opt_w || 'wordlist';
-my $DEBUG = $opt_d;
-
-my $minlen = $opt_l || 3;
-
-my $assume_qu = !$opt_q;
 
 my $height = @ARGV;
 my $width  = length $ARGV[0];
@@ -28,6 +25,7 @@ my $width  = length $ARGV[0];
 my $cubes = lc join '', @ARGV;
 my @cubes;
 
+my $assume_qu = !$q_is_q;
 $assume_qu = 0 unless $cubes =~ /q/;
 
 
