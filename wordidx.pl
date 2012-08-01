@@ -1,7 +1,5 @@
 #!/usr/local/bin/perl
 
-# $Header: /usr/people/rjk/words/RCS/wordidx.pl,v 1.3 2000/12/10 23:30:37 rjk Exp rjk $
-
 use strict;
 
 if (@ARGV != 2) {

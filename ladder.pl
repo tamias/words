@@ -1,11 +1,9 @@
 #!/usr/local/bin/perl -w
 
-# $Header: /usr/home/rjk/words/RCS/ladder.pl,v 1.8 2004/08/30 03:05:42 rjk Exp rjk $
-
 use strict;
 
 use vars qw($VERSION);
-$VERSION = q$Revision: 1.8 $ =~ /Revision:\s*(\S*)/;
+$VERSION = '1.8';
 
 use Getopt::Std;
 

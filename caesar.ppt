@@ -3,7 +3,7 @@
 use strict;
 
 use vars qw($VERSION);
-$VERSION = q$Revision: 1.2 $ =~ /Revision:\s*(\S*)/;
+$VERSION = '1.2';
 
 # optional argument specifies rotation
 if (@ARGV) {
@@ -150,17 +150,6 @@ This implementation of B<caesar> in Perl was written by Ronald J
 Kimball, I<rjk-perl@tamias.net>.  Based on caesar.c from the NetBSD
 games distribution, by Stan King and John Eldridge, which was based on
 an algorithm suggested by Bob Morris.
-
-=head1 REVISION HISTORY
-
-    $Log: caesar.ppt,v $
-    Revision 1.2  2003/06/05 03:40:07  rjk
-    minor improvements
-    new email address
-
-    Revision 1.1  2000/01/07 21:56:27  rjk
-    Initial revision
-
 
 =head1 COPYRIGHT and LICENSE
 

@@ -1,7 +1,5 @@
 #!/usr/local/bin/perl -w
 
-# $Header: /home/r/rjk/words/RCS/cryptosolve.pl,v 1.12 2003/06/04 03:36:40 rjk Exp rjk $
-
 use strict;
 use Getopt::Std;
 

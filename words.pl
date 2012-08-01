@@ -1,7 +1,5 @@
 #!/usr/local/bin/perl -w
 
-# $Header: /usr/people/rjk/words/RCS/words.pl,v 1.7 2000/12/10 23:30:17 rjk Exp $
-
 use strict;
 
 use File::Basename;

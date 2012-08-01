@@ -1,11 +1,9 @@
 #!/usr/local/bin/perl -w
 
-# $Header: /home/r/rjk/words/RCS/boggler.pl,v 1.5 2003/06/04 03:20:26 rjk Exp rjk $
-
 use strict;
 
 use vars qw($VERSION);
-$VERSION = q$Revision: 1.5 $ =~ /Revision:\s*(\S*)/;
+$VERSION = '1.5';
 
 use Getopt::Std;
 

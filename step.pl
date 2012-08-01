@@ -1,7 +1,5 @@
 #!/usr/local/bin/perl -wln
 
-# $Header: /usr/people/rjk/words/RCS/step.pl,v 1.1 2000/04/22 02:58:19 rjk Exp rjk $
-
 use strict;
 
 use vars qw/$word/;
