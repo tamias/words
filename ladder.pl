@@ -1,19 +1,18 @@
-#!/usr/local/bin/perl -w
+#!/usr/local/bin/perl
 
 use strict;
+use warnings;
 
-use vars qw($VERSION);
-$VERSION = '1.8';
+use Getopt::Long;
 
-use Getopt::Std;
+my $rc = GetOptions(
+  "wordlist=s" => \ (my $wordlist = 'wordlist'),
+  "all!"       => \  my $all,
+);
 
-use vars qw($opt_w $opt_a);
-
-if (not getopts('w:a') or @ARGV < 2) {
-  die <<EOT;
-usage: $0 [-w <wordlist>] [-a] <word> <word> [<bad word> ...]
-EOT
-}
+$rc && @ARGV >= 2
+  or die "usage: ladder.pl [--wordlist=<wordlist>] [--all] ",
+         "<word> <word> [<bad word> ...]\n";
 
 my @word = splice @ARGV, 0, 2;
 
@@ -24,8 +23,6 @@ if (length $word[0] != length $word[1]) {
 }
 
 @bad = map { ($_, 0) } @bad;                 # for use in hash below
-
-my $wordlist = $opt_w || 'wordlist';
 
 open(WORDS, $wordlist) or die "Can't open $wordlist: $!\n";
 
@@ -84,7 +81,7 @@ while (1) {
   foreach $step (@step) {
     if ($words[$p ^ 1]{$step}) {
       push @solutions, [@$cur, $step, reverse @{$words[$p ^ 1]{$step}}];
-      last STEP unless $opt_a;               # stop unless looking for all
+      last STEP unless $all;                 # stop unless looking for all
                                              #  solutions of this length
     }
 
