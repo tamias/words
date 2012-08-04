@@ -6,11 +6,11 @@ use warnings;
 use FindBin qw/ $Bin /;
 use Getopt::Long;
 
-GetOptions(
+my $rc = GetOptions(
   "wordlist=s" => \ (my $wordlist = "$Bin/wordlist"),
-) or exit 1;
+);
 
-@ARGV >= 2
+$rc && @ARGV >= 2
   or die "usage: words [--wordlist=<wordlist>] ",
          "<minimum length> <letters> [<letters> ...]\n";
 
