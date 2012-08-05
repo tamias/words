@@ -1,25 +1,22 @@
-#!/usr/local/bin/perl -w
+#!/usr/local/bin/perl
 
 use strict;
-use Getopt::Std;
+use warnings;
+
+use Getopt::Long;
 
 $| = 1;
 
-use vars qw($opt_w $opt_l $opt_g $opt_s $opt_d);
+GetOptions(
+  "wordlist=s" => \ (my $wordlist = 'wordlist'),
+  "length=i"   => \ (my $length = 6),
+  "guesses=i"  => \ (my $guesses = 20),
+  "self!"      => \  my $self_play,
+  "debug!"     => \  my $debug,
+) or die "usage: noose [--wordlist=<wordlist>] [--length=<length>] ",
+         "[--guesses=<guesses>] [--self] [--debug]\n";
 
-getopts('w:l:g:sd') || die "Bad options.\n";
-
-my $dict = $opt_w || 'wordlist';
-
-open(DICT, $dict) or die "Can't open $dict: $!\n";
-
-my $length = $opt_l || 6;
-
-my $guesses = $opt_g || 20;
-
-my $self_play = $opt_s;
-
-my $debug = $opt_d;
+open(DICT, $wordlist) or die "Can't open $wordlist: $!\n";
 
 my @words;
 
