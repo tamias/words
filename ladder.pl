@@ -11,7 +11,7 @@ my $rc = GetOptions(
 );
 
 $rc && @ARGV >= 2
-  or die "usage: ladder.pl [--wordlist=<wordlist>] [--all] ",
+  or die "usage: ladder [--wordlist=<wordlist>] [--all] ",
          "<word> <word> [<bad word> ...]\n";
 
 my @word = splice @ARGV, 0, 2;
@@ -151,7 +151,7 @@ B<ladder> -- find words which can be made from a string of letters
 
 =head1 SYNOPSIS
 
-B<ladder> [B<-w> I<wordlist>] [B<-a>] I<start-word> I<end-word>
+B<ladder> [B<--wordlist>=I<wordlist>] [B<--all>] I<start-word> I<end-word>
        [I<bad-word> ...]
 
 =head1 DESCRIPTION
@@ -174,16 +174,16 @@ B<ladder> accepts the following options:
 
 =over 4
 
-=item B<-w> I<wordlist>
+=item B<--wordlist>=I<wordlist>
 
 By default, B<ladder> looks for a word file named 'wordlist' in the
-same directory as the executable.  Use the B<-w> option to specify the
-path to an alternate word list.
+same directory as the executable.  Use the B<-wordlist> option to
+specify the path to an alternate word list.
 
-=item B<-a>
+=item B<--all>
 
 By default, B<ladder> stops at the first solution it finds.  With
-B<-a>, B<ladder> will continue to find all solutions of the same
+B<--all>, B<ladder> will continue to find all solutions of the same
 length as the first.
 
 =back
