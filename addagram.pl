@@ -13,6 +13,7 @@ use Getopt::Long;
 
 GetOptions(
   "wordlist=s" => \ (my $wordlist = 'wordlist'),
+  "all!"       => \  my $all,
 ) or die "usage: addagram [--wordlist=<wordlist>]";
 
 open(my $dict_fh, '<', $wordlist) or     # open word list
@@ -52,7 +53,7 @@ while ($i > 3 and !$found) {
         # note it, print it, go back to look for more
         $found = 1;
         print_solution($test);
-        last SEARCH;
+        last SEARCH unless $all;
         next;
       }
 
