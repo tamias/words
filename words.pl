@@ -22,7 +22,7 @@ if ($minlen =~ /\D/) {
   die "<minimum length> must be a whole number\n";
 }
 
-open(my $dict_fh, '<', $wordlist) or                 # open word list
+open(my $dict_fh, '<', $wordlist) or     # open word list
   die "Unable to open $wordlist: $!\n";
 
 my($idx, %idx, $idx_fh);
