@@ -1,27 +1,26 @@
-#!/usr/local/bin/perl -w
+#!/usr/local/bin/perl
 
 # find add-a-grams; sequences of words formed by starting with a
 # 3-letter word, adding a letter and rearranging to form a 4-letter
 # word, and so on
 
 use strict;
+use warnings;
 
 $| = 1;
 
-use Getopt::Std;
+use Getopt::Long;
 
-use vars qw($opt_w);
+GetOptions(
+  "wordlist=s" => \ (my $wordlist = 'wordlist'),
+) or die "usage: addagram [--wordlist=<wordlist>]";
 
-getopts('w:') or die "usage: words.pl [-w <wordlist>] ";
-
-my $wordlist = $opt_w || 'wordlist';
-
-open(DICT, $wordlist) or                 # open word list
+open(my $dict_fh, '<', $wordlist) or     # open word list
   die "Unable to open $wordlist: $!\n";
 
 my(%words, @letters);
 
-while (<DICT>) {
+while (<$dict_fh>) {
   chomp;
   my $letters = join '', sort split //;
   if (not exists $words{$letters}) {
