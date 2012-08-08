@@ -16,11 +16,11 @@ GetOptions(
 ) or die "usage: noose [--wordlist=<wordlist>] [--length=<length>] ",
          "[--guesses=<guesses>] [--self] [--debug]\n";
 
-open(DICT, $wordlist) or die "Can't open $wordlist: $!\n";
+open(my $dict_fh, '<', $wordlist) or die "Can't open $wordlist: $!\n";
 
 my @words;
 
-while (<DICT>) {
+while (<$dict_fh>) {
   chomp;
 
   next if $_ =~ /[^a-z]/;

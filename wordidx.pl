@@ -1,6 +1,7 @@
 #!/usr/local/bin/perl
 
 use strict;
+use warnings;
 
 if (@ARGV != 2) {
   die "usage: wordidx <input file> <output file>\n";
@@ -8,22 +9,22 @@ if (@ARGV != 2) {
 
 my($wordfile, $idxfile) = @ARGV;
 
-open(WORDS, $wordfile) or die "Unable to open $wordfile: $!\n";
-open(IDX, ">$idxfile") or die "Unable to open $idxfile: $!\n";
+open(my $dict_fh, '<', $wordfile) or die "Unable to open $wordfile: $!\n";
+open(my $idx_fh,  '>', $idxfile)  or die "Unable to open $idxfile: $!\n";
 
 my $offset = 0;
 my $letter = '';
 
 my %letters;
 
-while(<WORDS>) {
+while (<$word_fh>) {
   next if /^#/;
 
   if (substr($_, 0, 1) ne $letter) {
     $letter = substr($_, 0, 1);
 
     if ($letters{$letter}) {
-      close(IDX);
+      close($idx_fh);
       unlink $idxfile;
 
       die "Words beginning with $letter start on lines " .
@@ -32,10 +33,10 @@ while(<WORDS>) {
 
     $letters{$letter} = $.;
 
-    print IDX "$letter $offset\n";
+    print $idx_fh "$letter $offset\n";
   }
 
-  $offset = tell(WORDS);
+  $offset = tell($word_fh);
 }
 
 __END__

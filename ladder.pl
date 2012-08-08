@@ -24,16 +24,16 @@ if (length $word[0] != length $word[1]) {
 
 @bad = map { ($_, 0) } @bad;                 # for use in hash below
 
-open(WORDS, $wordlist) or die "Can't open $wordlist: $!\n";
+open(my $words_fh, '<', $wordlist) or die "Can't open $wordlist: $!\n";
 
 my @wordlist;
 
-while (<WORDS>) {                            # load word list into memory
+while (<$words_fh>) {                            # load word list into memory
   chomp;
   push @wordlist, lc $_
     if length $_ == length $word[0];
 }
-close(WORDS);
+close($words_fh);
 
 
 my @queue = ([[$word[0]], 'break'], [[$word[1]], 'break']);

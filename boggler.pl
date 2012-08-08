@@ -46,11 +46,11 @@ for (@ARGV) {
 
 # create dictionary, as a dictionary tree
 
-open(DICT, $dict) or die "Can't open $dict: $!\n";
+open(my $dict_fh, '<', $dict) or die "Can't open $dict: $!\n";
 
 my %dict;
 
-while (<DICT>) {
+while (<$dict_fh>) {
   chomp;
 
   next if length $_ < $minlen;
@@ -71,7 +71,7 @@ while (<DICT>) {
   }
   $node->{_} = 1;
 }
-close(DICT);
+close($dict_fh);
 
 
 # find and print words

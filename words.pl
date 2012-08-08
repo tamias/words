@@ -22,20 +22,20 @@ if ($minlen =~ /\D/) {
   die "<minimum length> must be a whole number\n";
 }
 
-open(DICT, $wordlist) or                 # open word list
+open(my $dict_fh, '<', $wordlist) or                 # open word list
   die "Unable to open $wordlist: $!\n";
 
-my($idx, %idx);
+my($idx, %idx, $idx_fh);
 
 if (!-e $wordidx) {
   warn "Unable to locate $wordidx.\n";
 } elsif (-M $wordlist < -M $wordidx) {
   warn "$wordlist is newer than $wordidx.\n";
-} elsif (! open(IDX, $wordidx)) {
+} elsif (! open($idx_fh, $wordidx)) {
   warn "Unable to open $wordidx: $!\n";
 } else {
   $idx = 1;                              # set index flag
-  while(<IDX>) {
+  while (<$idx_fh>) {
     my($letter, $offset) = split;        # load letter/offset pairs
     $idx{$letter} = $offset;
   }
@@ -77,10 +77,10 @@ foreach my $letters (@ARGV) {            # for each letter sequence
                                          # for each letter in
                                          #   sequence if index loaded
                                          #   (0) otherwise
-    seek(DICT, $idx{$letter}, 0);        # seek to words beginning with letter
+    seek($dict_fh, $idx{$letter}, 0);    # seek to words beginning with letter
 
   WORD:
-    while (defined($word = <DICT>)) {
+    while (defined($word = <$dict_fh>)) {
                                          # for each word in list
       next IDX if ($idx and substr($word, 0, 1) ne $letter);
                                          # next letter index if index loaded
@@ -103,7 +103,7 @@ foreach my $letters (@ARGV) {            # for each letter sequence
       print "$word\n";                   # success - print word
       $words++;
 
-    } # WORD: while (defined($word = <DICT>))
+    } # WORD: while (defined($word = <$dict_fh>))
 
   } # IDX: foreach $letter (sort keys %idx)
 

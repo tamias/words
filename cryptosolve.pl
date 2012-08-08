@@ -14,7 +14,7 @@ GetOptions(
   "once!"      => \  my $ELIMINATE_ONCE,
 ) or exit 1;
 
-open(DICT, $dict) or die "Can't open $dict: $!\n";
+open(my $dict_fh, '<', $dict) or die "Can't open $dict: $!\n";
 
 my @crypto;
 if (@ARGV) {
@@ -63,7 +63,7 @@ my @words = map [ length == 1 ? ('a', 'i') : () ], @crypto;
 # build an array of arrays of all the matching real words
 # for each base word
 
-while (<DICT>) {
+while (<$dict_fh>) {
   chomp;
 
   next if length == 1;
