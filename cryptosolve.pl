@@ -1,20 +1,18 @@
-#!/usr/local/bin/perl -w
+#!/usr/local/bin/perl
 
 use strict;
-use Getopt::Std;
+use warnings;
+
+use Getopt::Long qw/ :config require_order /;
 
 $| = 1;
 
-use vars qw($opt_w $opt_u $opt_D $opt_E);
-
-getopts('w:uDE') || die "Bad options.\n";
-
-my $dict = $opt_w || 'wordlist';
-
-my $force_upper = $opt_u;
-
-my $DEBUG = $opt_D;
-my $ELIMINATE_ONCE = $opt_E;
+GetOptions(
+  "wordlist=s" => \ (my $dict = 'wordlist'),
+  "upper!"     => \  my $force_upper,
+  "debug!"     => \  my $DEBUG,
+  "once!"      => \  my $ELIMINATE_ONCE,
+) or exit 1;
 
 open(DICT, $dict) or die "Can't open $dict: $!\n";
 
