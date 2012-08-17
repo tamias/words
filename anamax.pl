@@ -1,38 +1,32 @@
-#!/usr/local/bin/perl -w
+#!/usr/local/bin/perl
 
 # find groups of anagrams at the specified word length
 # prints the largest groups found
 
 use strict;
+use warnings;
 
 use File::Basename;
+use Getopt::Long;
 
-use Getopt::Std;
+my $rc = GetOptions(
+  "wordlist=s" => \ (my $wordlist = 'wordlist'),
+);
 
-use vars qw($opt_w);
-
-getopts('w:') || die "Bad options.\n";
-
-my $dir = dirname($0);
-my $wordlist = $opt_w || "$dir/wordlist";
-
-if (@ARGV < 1) {
-  warn "usage: $0 <length>\n";
-  exit;
-}
+$rc && @ARGV == 1
+  or die "usage: anamax <length>\n";
 
 my $length = shift @ARGV;
 
 if ($length =~ /\D/) {
-  die "$0: <length> must be a whole number\n";
+  die "anamax: <length> must be a whole number\n";
 }
 
-open(DICT, $wordlist) or                 # open word list
-  die "Unable to open $wordlist: $!\n";
+open(my $words_fh, '<', $wordlist) or die "Can't open $wordlist: $!\n";
 
 my %count;
 
-while (<DICT>) {
+while (<$words_fh>) {
   chomp;
   next if length != $length;
 
@@ -41,7 +35,7 @@ while (<DICT>) {
   push @{$count{$canon}}, $_;
 }
 
-close DICT;
+close $words_fh;
 
 print scalar(keys %count), " groups.\n";
 
