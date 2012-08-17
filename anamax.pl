@@ -14,12 +14,12 @@ my $rc = GetOptions(
 );
 
 $rc && @ARGV == 1
-  or die "usage: anamax <length>\n";
+  or die "usage: anamax [--wordlist <wordlist>] <length>\n";
 
 my $length = shift @ARGV;
 
 if ($length =~ /\D/) {
-  die "anamax: <length> must be a whole number\n";
+  die "<length> must be a whole number\n";
 }
 
 open(my $words_fh, '<', $wordlist) or die "Can't open $wordlist: $!\n";
