@@ -1,13 +1,23 @@
-#!/usr/local/bin/perl -w
+#!/usr/local/bin/perl
 
 use strict;
+use warnings;
 
 # solve anacrossagrams, as found at http://rinkworks.com/brainfood/
 
+if (!@ARGV) {
+ die "usage: anacross <size> <across> <across> ... <down> <down> ...\n";
+}
+
 my $size = shift @ARGV;
 
+if ($size =~ /\D/) {
+  die "<size> must be a whole number\n";
+}
+
 if (@ARGV != $size * 2) {
-  die "$0: wrong number of arguments.\n";
+  die "Wrong number of arguments; ",
+      "expected $size across words, $size down words.\n";
 }
 
 my @across = splice @ARGV, 0, $size;
@@ -17,7 +27,7 @@ my $word;
 my @a_ltrs;
 foreach $word (@across) {
   if (length $word != $size) {
-    die "'$word' is not of length $size.\n";
+    die "Across word '$word' is not of length $size.\n";
   }
 
   my %tmp;
@@ -30,7 +40,7 @@ foreach $word (@across) {
 my @d_ltrs;
 foreach $word (@down) {
   if (length $word != $size) {
-    die "'$word' is not of length $size.\n";
+    die "Down word '$word' is not of length $size.\n";
   }
 
   my %tmp;
