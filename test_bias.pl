@@ -8,9 +8,11 @@ use strict;
 
 use IO::File;
 
+my $count = 1_000_000;
+
 my $file = shift or die "Must specify file\n";
 
-my $fh = new IO::File;
+my $fh = IO::File->new;
 
 $fh->open($file) or die "Can't open $file: $!\n";
 
@@ -18,18 +20,29 @@ my $size = -s $file;
 
 my %words;
 
-for (1 .. 1_000_000) {
+for (1 .. $count) {
   $fh->seek(0, 0) or die "Can't seek in $file: $!\n";
   my $word = choose_word($fh, $size);
 
   $words{$word}++;
 }
 
-my @words = sort { $words{$b} <=> $words{$a} } keys %words;
+print_results();
 
-for my $word (@words[0 .. 9, -10 .. -1]) {
-  printf "%25s %5d\n", $word, $words{$word};
+print "\n";
+
+%words = ();
+
+$fh->seek(0, 0) or die "Can't seek in $file: $!\n";
+
+my @words = <$fh>;
+chomp @words;
+
+for (1 .. $count) {
+  $words{$words[int rand scalar @words]}++;
 }
+
+print_results();
 
 sub choose_word {
   my($fh, $size) = @_;
@@ -48,4 +61,16 @@ sub choose_word {
 
   return $word;
 
+}
+
+sub print_results {
+  my @words = sort { $words{$b} <=> $words{$a} } keys %words;
+
+  if (@words > 20) {
+    @words = @words[0 .. 9, -10 .. -1];
+  }
+
+  for my $word (@words) {
+    printf "%25s %5d\n", $word, $words{$word};
+  }
 }
